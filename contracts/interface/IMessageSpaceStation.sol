@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-library MessageLib {
+interface IMessageSpaceStation {
     struct launchParams {
         uint64 destChainld;
         uint64 earlistArrivalTime;
@@ -16,10 +16,18 @@ library MessageLib {
         uint64 scrChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
+        uint24 launchNonce;
         address sender;
-        address receiver;
         address relayer;
-        bytes aditionParams;
         bytes message;
     }
+
+    function Launch(
+        launchParams calldata params
+    ) external payable returns (bytes32 messageId);
+
+    function Land(
+        bytes[] calldata validatorSignatures,
+        landParams calldata params
+    ) external;
 }

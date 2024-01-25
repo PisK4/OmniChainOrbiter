@@ -3,4 +3,5 @@ pragma solidity ^0.8.23;
 
 library Errors {
     error NonceNotMatched();
+    error NotTrustedSequencer();
 }
