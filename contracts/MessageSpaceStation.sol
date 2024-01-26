@@ -38,11 +38,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                 params.destChainld,
                 params.sender,
                 address(this),
-                landNonce[params.destChainld][params.sender]
+                nonceLanding[params.destChainld][params.sender]
             )
             .hash();
 
-        launchNonce.update(params.destChainld, params.sender);
+        nonceLaunch.update(params.destChainld, params.sender);
     }
 
     function Landing(
@@ -54,15 +54,15 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
         (validatorSignatures);
         if (
-            landNonce.compare(
+            nonceLanding.compare(
                 params.scrChainld,
                 params.sender,
-                params.launchNonce
+                params.nonceLaunch
             ) != true
         ) {
             revert Errors.NonceNotMatched();
         }
-        landNonce.update(params.scrChainld, params.sender);
+        nonceLanding.update(params.scrChainld, params.sender);
 
         if (params.message.fetchMessageType() == MessageMonitorLib.EXCUTE) {
             params.message.excuteSignature();

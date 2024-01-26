@@ -60,7 +60,7 @@ describe("OrbiterStation", () => {
 
     console.log(
       "nonce1:",
-      await OrbiterStation.launchNonce(
+      await OrbiterStation.nonceLaunch(
         LaunchParams.destChainld,
         LaunchParams.sender
       )
@@ -71,7 +71,7 @@ describe("OrbiterStation", () => {
 
     console.log(
       "nonce2:",
-      await OrbiterStation.launchNonce(
+      await OrbiterStation.nonceLaunch(
         LaunchParams.destChainld,
         LaunchParams.sender
       )
@@ -86,7 +86,7 @@ describe("OrbiterStation", () => {
       scrChainld: 1,
       earlistArrivalTime: 1,
       latestArrivalTime: 1,
-      launchNonce: 0,
+      nonceLaunch: 0,
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),
       message: demo1message,
