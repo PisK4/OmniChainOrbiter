@@ -1,26 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract ORBIToken is ERC20 {
-    constructor() ERC20("Orbiter token", "ORBT") {
-        _mint(msg.sender, 999999 ether);
-    }
-
-    function mint(address toAddress, uint256 amount) public {
-        _mint(toAddress, amount * (1 ether));
-    }
-
-    function mint(uint256 amount) public {
-        _mint(msg.sender, amount * (1 ether));
-    }
-
-    function decimals() public view virtual override returns (uint8) {
-        return 6;
-    }
-}
-
 interface IOtherChainInterface {
     function mint(uint256 amount) external;
 }
@@ -55,6 +35,22 @@ contract chainA_EncodeMessageDemo {
             (amount)
         );
         return message;
+    }
+
+    function buildMessage(
+        bytes1 mode,
+        address toAddress,
+        uint24 gasLimit,
+        uint256 args
+    ) external view returns (bytes memory) {
+        uint256 contractAddr = uint256(uint160(toAddress));
+        bytes memory signature = abi.encodePacked(
+            mode,
+            contractAddr,
+            gasLimit,
+            abi.encodeWithSignature("mint(address,uint256)", msg.sender, args)
+        );
+        return signature;
     }
 
     function excuteMessage(

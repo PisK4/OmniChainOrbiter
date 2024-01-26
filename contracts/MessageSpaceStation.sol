@@ -7,22 +7,32 @@ import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 
-contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor {
+contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
     using Utils for bytes;
+
     /// @dev trusted sequencer, we will execute the message from this address
     address public trustedSequencer;
+    /// @dev engine status 0x01 is stop, 0x02 is start
+    uint8 public isPause;
 
     receive() external payable {}
 
-    constructor(address _trustedSequencer) payable {
+    constructor(address _trustedSequencer) payable Ownable(msg.sender) {
         trustedSequencer = _trustedSequencer;
     }
 
+    modifier engineCheck() {
+        if (isPause == MessageMonitorLib.ENGINE_STOP) {
+            revert Errors.isPause();
+        }
+        _;
+    }
+
     function Launch(
-        launchParams calldata params
-    ) external payable override returns (bytes32 messageId) {
+        LaunchParams calldata params
+    ) external payable override engineCheck returns (bytes32 messageId) {
         messageId = abi
             .encode(
                 params.destChainld,
@@ -37,8 +47,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor {
 
     function Land(
         bytes[] calldata validatorSignatures,
-        landParams calldata params
-    ) external override {
+        LandParams calldata params
+    ) external override engineCheck {
         if (msg.sender != trustedSequencer) {
             revert Errors.NotTrustedSequencer();
         }
@@ -54,8 +64,23 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor {
         }
         landNonce.update(params.scrChainld, params.sender);
 
-        if (params.message.getType() == LandingMessageType.EXCUTE) {
+        if (params.message.fetchMessageType() == MessageMonitorLib.EXCUTE) {
             params.message.excuteSignature();
+        }
+    }
+
+    function pause(bool _isPause) external override onlyOwner {
+        if (_isPause) {
+            isPause = MessageMonitorLib.ENGINE_STOP;
+        } else {
+            isPause = MessageMonitorLib.ENGINE_START;
+        }
+    }
+
+    function withdarw(uint256 amount) external override {
+        (bool sent, ) = payable(owner()).call{value: amount}("");
+        if (!sent) {
+            revert Errors.WithdrawError();
         }
     }
 }

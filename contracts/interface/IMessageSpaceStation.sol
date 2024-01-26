@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 interface IMessageSpaceStation {
-    struct launchParams {
+    struct LaunchParams {
         uint64 destChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
@@ -12,7 +12,7 @@ interface IMessageSpaceStation {
         bytes message;
     }
 
-    struct landParams {
+    struct LandParams {
         uint64 scrChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
@@ -22,12 +22,19 @@ interface IMessageSpaceStation {
         bytes message;
     }
 
+    event LaunchEvent(bytes32 indexed messageId, LaunchParams params);
+    event LandEvent(bytes32 indexed messageId, LandParams params);
+
     function Launch(
-        launchParams calldata params
+        LaunchParams calldata params
     ) external payable returns (bytes32 messageId);
 
     function Land(
         bytes[] calldata validatorSignatures,
-        landParams calldata params
+        LandParams calldata params
     ) external;
+
+    function pause(bool _isPause) external;
+
+    function withdarw(uint256 amount) external;
 }
