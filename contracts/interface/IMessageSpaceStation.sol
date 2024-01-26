@@ -22,14 +22,14 @@ interface IMessageSpaceStation {
         bytes message;
     }
 
-    event LaunchEvent(bytes32 indexed messageId, LaunchParams params);
-    event LandEvent(bytes32 indexed messageId, LandParams params);
+    event SuccessfulLaunch(bytes32 indexed messageId, LaunchParams params);
+    event SuccessfulLanding(bytes32 indexed messageId, LandParams params);
 
     function Launch(
         LaunchParams calldata params
     ) external payable returns (bytes32 messageId);
 
-    function Land(
+    function Landing(
         bytes[] calldata validatorSignatures,
         LandParams calldata params
     ) external;

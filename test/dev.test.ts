@@ -93,7 +93,7 @@ describe("OrbiterStation", () => {
     };
     // get random validator signatures
     const validatorSignatures = [keccak256("0x00"), keccak256("0x01")];
-    const tx2 = await OrbiterStation.Land(validatorSignatures, LandParams);
+    const tx2 = await OrbiterStation.Landing(validatorSignatures, LandParams);
     await tx2.wait();
 
     console.log(

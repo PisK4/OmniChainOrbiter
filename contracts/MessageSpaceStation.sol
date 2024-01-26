@@ -45,7 +45,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         launchNonce.update(params.destChainld, params.sender);
     }
 
-    function Land(
+    function Landing(
         bytes[] calldata validatorSignatures,
         LandParams calldata params
     ) external override engineCheck {
