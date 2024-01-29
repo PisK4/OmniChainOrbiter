@@ -38,4 +38,8 @@ interface IMessageSpaceStation {
     function pause(bool _isPause) external;
 
     function withdarw(uint256 amount) external;
+
+    function quote(
+        paramsLaunch calldata params
+    ) external view returns (uint256);
 }

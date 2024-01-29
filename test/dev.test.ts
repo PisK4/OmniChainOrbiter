@@ -11,7 +11,7 @@ import {
   Helper__factory,
 } from "../typechain-types";
 import { ethers } from "hardhat";
-import { BytesLike, AbiCoder, keccak256, toBeArray } from "ethers";
+import { BytesLike, AbiCoder, keccak256, toBeArray, EventLog } from "ethers";
 import { calculateTxGas } from "../scripts/utils";
 
 describe("OrbiterStation", () => {
@@ -53,10 +53,8 @@ describe("OrbiterStation", () => {
       100
     );
 
-    console.log("demo1message:", demo1message);
-
     let paramsLaunch: IMessageSpaceStation.ParamsLaunchStruct = {
-      destChainld: 1,
+      destChainld: (await ethers.provider.getNetwork()).chainId,
       earlistArrivalTime: 1,
       latestArrivalTime: 1,
       sender: await signers[0].getAddress(),
@@ -66,8 +64,9 @@ describe("OrbiterStation", () => {
     };
 
     const tx = await OrbiterStation.Launch(paramsLaunch);
-    await tx.wait();
+    const LaunchTxrecipt = await tx.wait();
     await calculateTxGas(tx, "Launch", true);
+    console.log("LaunchID", LaunchTxrecipt!.logs[0].args.messageId);
 
     console.log(
       "nonce2:",
@@ -143,11 +142,11 @@ describe("OrbiterStation", () => {
     // });
 
     const tx2 = await OrbiterStation.Landing(
-      validatorSignatures,
-      // ["0x"],
+      // validatorSignatures,
+      ["0x"],
       paramsLanding
     );
-    await tx2.wait();
+    const LandingTxrecipt = await tx2.wait();
     await calculateTxGas(tx2, "Landing", true);
 
     console.log(

@@ -14,6 +14,7 @@ import "hardhat/console.sol";
 contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
+    using MessageMonitorLib for uint24;
     using Utils for bytes;
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
@@ -32,7 +33,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     modifier engineCheck() {
         if (isPause == MessageMonitorLib.ENGINE_STOP) {
-            revert Errors.isPause();
+            revert Errors.StationPaused();
         }
         _;
     }
@@ -40,16 +41,15 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     function Launch(
         paramsLaunch calldata params
     ) external payable override engineCheck returns (bytes32 messageId) {
-        messageId = abi
-            .encode(
-                params.destChainld,
-                params.sender,
-                address(this),
-                nonceLanding[params.destChainld][params.sender]
-            )
-            .hash();
+        if (msg.value != quote(params)) {
+            revert Errors.ValueNotMatched();
+        }
+        messageId = nonceLanding[params.destChainld][params.sender]
+            .fetchMessageId(params.destChainld, params.sender, params.relayer);
 
         nonceLaunch.update(params.destChainld, params.sender);
+
+        emit SuccessfulLaunch(messageId, params);
     }
 
     function Landing(
@@ -63,22 +63,32 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         // _validateSignature(params, validatorSignatures);
         if (
             nonceLanding.compare(
-                params.scrChainld,
+                uint64(block.chainid),
                 params.sender,
                 params.nonceLaunch
             ) != true
         ) {
             revert Errors.NonceNotMatched();
         }
-        nonceLanding.update(params.scrChainld, params.sender);
+        nonceLanding.update(uint64(block.chainid), params.sender);
 
         if (params.value != msg.value) {
             revert Errors.ValueNotMatched();
         }
 
-        if (params.message.fetchMessageType() == MessageMonitorLib.EXCUTE) {
+        bytes1 messageType = params.message.fetchMessageType();
+        if (messageType == MessageMonitorLib.EXCUTE) {
             params.message.excuteSignature();
-        }
+        } else if (messageType == MessageMonitorLib.MAIL) {}
+
+        emit SuccessfulLanding(
+            params.nonceLaunch.fetchMessageId(
+                uint64(block.chainid),
+                params.sender,
+                params.relayer
+            ),
+            params
+        );
     }
 
     function pause(bool _isPause) external override onlyOwner {
@@ -116,5 +126,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
             console.log("validatorArray[i]: %s", validatorArray[i]);
         }
+    }
+
+    function quote(
+        paramsLaunch calldata params
+    ) public pure override returns (uint256) {
+        (params);
+        return 0;
     }
 }

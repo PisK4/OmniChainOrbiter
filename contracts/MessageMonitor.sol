@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 import {Errors} from "./library/Errors.sol";
+import {Utils} from "./library/Utils.sol";
 
 library MessageMonitorLib {
     using MessageMonitorLib for address;
+    using Utils for bytes;
     bytes1 constant MAIL = 0x00;
     bytes1 constant EXCUTE = 0x01;
 
@@ -34,6 +36,15 @@ library MessageMonitorLib {
     ) internal pure returns (bytes1) {
         bytes1 messageSlice = bytes1(message[0:1]);
         return messageSlice;
+    }
+
+    function fetchMessageId(
+        uint24 nonce,
+        uint64 chainId,
+        address sender,
+        address relayer
+    ) internal pure returns (bytes32) {
+        return abi.encode(nonce, chainId, sender, relayer).hash();
     }
 
     function excuteSignature(
