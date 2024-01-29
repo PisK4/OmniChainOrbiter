@@ -7,15 +7,19 @@ import {
   ChainA_EncodeMessageDemo,
   ChainA_EncodeMessageDemo__factory,
   IMessageSpaceStation,
+  Helper,
+  Helper__factory,
 } from "../typechain-types";
 import { ethers } from "hardhat";
-import { keccak256 } from "ethers";
+import { BytesLike, AbiCoder, keccak256, toBeArray } from "ethers";
+import { calculateTxGas } from "../scripts/utils";
 
 describe("OrbiterStation", () => {
   let OrbiterToken: ORBIToken;
   let OrbiterStation: MessageSpaceStation;
   let signers: HardhatEthersSigner[];
   let DAppDemo: ChainA_EncodeMessageDemo;
+  let HelperContract: Helper;
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -35,6 +39,9 @@ describe("OrbiterStation", () => {
     DAppDemo = await new ChainA_EncodeMessageDemo__factory(signers[2]).deploy();
     await DAppDemo.waitForDeployment();
     console.log("DAppDemo deployed to:", await DAppDemo.getAddress());
+
+    HelperContract = await new Helper__factory(signers[0]).deploy();
+    await HelperContract.waitForDeployment();
   });
 
   it("Should Launch&Land message in OrbiterStation", async () => {
@@ -48,7 +55,7 @@ describe("OrbiterStation", () => {
 
     console.log("demo1message:", demo1message);
 
-    let LaunchParams: IMessageSpaceStation.LaunchParamsStruct = {
+    let paramsLaunch: IMessageSpaceStation.ParamsLaunchStruct = {
       destChainld: 1,
       earlistArrivalTime: 1,
       latestArrivalTime: 1,
@@ -58,22 +65,15 @@ describe("OrbiterStation", () => {
       message: demo1message,
     };
 
-    console.log(
-      "nonce1:",
-      await OrbiterStation.nonceLaunch(
-        LaunchParams.destChainld,
-        LaunchParams.sender
-      )
-    );
-
-    const tx = await OrbiterStation.Launch(LaunchParams);
+    const tx = await OrbiterStation.Launch(paramsLaunch);
     await tx.wait();
+    await calculateTxGas(tx, "Launch", true);
 
     console.log(
       "nonce2:",
       await OrbiterStation.nonceLaunch(
-        LaunchParams.destChainld,
-        LaunchParams.sender
+        paramsLaunch.destChainld,
+        paramsLaunch.sender
       )
     );
 
@@ -82,19 +82,73 @@ describe("OrbiterStation", () => {
       await OrbiterToken.balanceOf(await signers[2].getAddress())
     );
 
-    let LandParams: IMessageSpaceStation.LandParamsStruct = {
+    let paramsLanding: IMessageSpaceStation.ParamsLandingStruct = {
       scrChainld: 1,
       earlistArrivalTime: 1,
       latestArrivalTime: 1,
       nonceLaunch: 0,
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),
+      value: 0,
       message: demo1message,
     };
     // get random validator signatures
-    const validatorSignatures = [keccak256("0x00"), keccak256("0x01")];
-    const tx2 = await OrbiterStation.Landing(validatorSignatures, LandParams);
+
+    const ParamsLandingType = [
+      "uint64",
+      "uint64",
+      "uint64",
+      "uint24",
+      "address",
+      "address",
+      "uint256",
+      "bytes",
+    ];
+
+    const AbiCoder = ethers.AbiCoder.defaultAbiCoder();
+
+    const encodedParamsLanding = AbiCoder.encode(
+      ParamsLandingType,
+      Object.values(paramsLanding)
+    );
+
+    const contractencodehash = await HelperContract.encodeparams(paramsLanding);
+
+    const encodedParamsLandingHash = ethers.keccak256(encodedParamsLanding);
+
+    console.log(
+      "nonce1:",
+      await OrbiterStation.nonceLaunch(
+        paramsLaunch.destChainld,
+        paramsLaunch.sender
+      )
+    );
+
+    const validatorList = signers.slice(10, 15);
+    const validatorAddresses: string[] = [];
+    const validatorSignatures: BytesLike[] = [];
+
+    for (const s of validatorList) {
+      const signature = await s.signMessage(toBeArray(contractencodehash));
+      validatorAddresses.push(await s.getAddress());
+      validatorSignatures.push(signature);
+    }
+
+    // validatorSignatures.map((s) => {
+    //   console.log("signature:", s);
+    // });
+
+    // validatorAddresses.map((s) => {
+    //   console.log("validatorAddresses:", s);
+    // });
+
+    const tx2 = await OrbiterStation.Landing(
+      validatorSignatures,
+      // ["0x"],
+      paramsLanding
+    );
     await tx2.wait();
+    await calculateTxGas(tx2, "Landing", true);
 
     console.log(
       "balance of signer[2] - after:",

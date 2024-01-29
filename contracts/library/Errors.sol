@@ -7,4 +7,5 @@ library Errors {
     error isPause();
     error WithdrawError();
     error OutOfGas();
+    error ValueNotMatched();
 }

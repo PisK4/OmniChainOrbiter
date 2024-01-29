@@ -45,7 +45,6 @@ library MessageMonitorLib {
         );
         // note: byte33 ~ byte35 is gasLimit
         uint24 gasLimit = (uint24(bytes3(message[33:36])));
-        // TODO: uint256 value = uint256(bytes32(message[36:68]));
         uint256 value = 0;
         /// note: byte36 ~ byteEnd is signature
         bytes memory signature = message[36:message.length];
