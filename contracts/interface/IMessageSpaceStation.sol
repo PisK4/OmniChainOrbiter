@@ -16,7 +16,7 @@ interface IMessageSpaceStation {
         uint64 scrChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
-        uint24 nonceLaunch;
+        uint24 nonceLandingCurrent;
         address sender;
         address relayer;
         uint256 value;

@@ -85,7 +85,7 @@ describe("OrbiterStation", () => {
       scrChainld: 1,
       earlistArrivalTime: 1,
       latestArrivalTime: 1,
-      nonceLaunch: 0,
+      nonceLandingCurrent: 0,
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),
       value: 0,

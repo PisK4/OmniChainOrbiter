@@ -15,14 +15,15 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
     using MessageMonitorLib for uint24;
+    using MessageHashUtils for bytes32;
     using Utils for bytes;
     using ECDSA for bytes32;
-    using MessageHashUtils for bytes32;
 
     /// @dev trusted sequencer, we will execute the message from this address
     address public trustedSequencer;
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public isPause;
+    /// @dev number of trusted messageSingners limit of the message
     uint8 constant validatorSignaturesLowerLimit = 2;
 
     receive() external payable {}
@@ -63,9 +64,9 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         // _validateSignature(params, validatorSignatures);
         if (
             nonceLanding.compare(
-                uint64(block.chainid),
+                params.scrChainld,
                 params.sender,
-                params.nonceLaunch
+                params.nonceLandingCurrent
             ) != true
         ) {
             revert Errors.NonceNotMatched();
@@ -82,8 +83,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         } else if (messageType == MessageMonitorLib.MAIL) {}
 
         emit SuccessfulLanding(
-            params.nonceLaunch.fetchMessageId(
-                uint64(block.chainid),
+            params.nonceLandingCurrent.fetchMessageId(
+                params.scrChainld,
                 params.sender,
                 params.relayer
             ),
