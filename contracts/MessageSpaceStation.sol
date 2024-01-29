@@ -58,7 +58,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         paramsLanding calldata params
     ) external payable override engineCheck {
         if (msg.sender != trustedSequencer) {
-            revert Errors.NotTrustedSequencer();
+            revert Errors.AccessDenied();
         }
         (validatorSignatures);
         // _validateSignature(params, validatorSignatures);
@@ -82,14 +82,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             params.message.excuteSignature();
         } else if (messageType == MessageMonitorLib.MAIL) {}
 
-        emit SuccessfulLanding(
-            params.nonceLandingCurrent.fetchMessageId(
-                params.scrChainld,
-                params.sender,
-                params.relayer
-            ),
-            params
-        );
+        emit SuccessfulLanding(params.messgeId, params);
     }
 
     function pause(bool _isPause) external override onlyOwner {

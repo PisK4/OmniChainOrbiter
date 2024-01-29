@@ -66,7 +66,8 @@ describe("OrbiterStation", () => {
     const tx = await OrbiterStation.Launch(paramsLaunch);
     const LaunchTxrecipt = await tx.wait();
     await calculateTxGas(tx, "Launch", true);
-    console.log("LaunchID", LaunchTxrecipt!.logs[0].args.messageId);
+    const messageIdJustLancuhed = LaunchTxrecipt!.logs[0].args.messageId;
+    console.log("LaunchID", messageIdJustLancuhed);
 
     console.log(
       "nonce2:",
@@ -89,6 +90,7 @@ describe("OrbiterStation", () => {
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),
       value: 0,
+      messgeId: messageIdJustLancuhed,
       message: demo1message,
     };
     // get random validator signatures
@@ -101,6 +103,7 @@ describe("OrbiterStation", () => {
       "address",
       "address",
       "uint256",
+      "bytes32",
       "bytes",
     ];
 
@@ -148,6 +151,8 @@ describe("OrbiterStation", () => {
     );
     const LandingTxrecipt = await tx2.wait();
     await calculateTxGas(tx2, "Landing", true);
+    // const messageIdJustLanding = LandingTxrecipt!.logs[0].args.messageId;
+    // console.log("LaunchID", messageIdJustLanding);
 
     console.log(
       "balance of signer[2] - after:",
