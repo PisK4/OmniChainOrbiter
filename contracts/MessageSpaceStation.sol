@@ -5,6 +5,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
+import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
@@ -21,6 +22,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @dev trusted sequencer, we will execute the message from this address
     address public trustedSequencer;
+    /// @dev payment system address
+    IMessagePaymentSystem public paymentSystem;
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public isPause;
     /// @dev number of trusted messageSingners limit of the message
@@ -28,8 +31,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     receive() external payable {}
 
-    constructor(address _trustedSequencer) payable Ownable(msg.sender) {
+    constructor(
+        address _trustedSequencer,
+        address _paymentSystemAddress
+    ) payable Ownable(msg.sender) {
         trustedSequencer = _trustedSequencer;
+        paymentSystem = IMessagePaymentSystem(_paymentSystemAddress);
     }
 
     modifier engineCheck() {
@@ -40,9 +47,9 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function Launch(
-        paramsLaunch calldata params
+        MessageMonitorLib.paramsLaunch calldata params
     ) external payable override engineCheck returns (bytes32 messageId) {
-        if (msg.value != quote(params)) {
+        if (msg.value != fetchProtocalFee(params)) {
             revert Errors.ValueNotMatched();
         }
         messageId = nonceLanding[params.destChainld][params.sender]
@@ -55,7 +62,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     function Landing(
         bytes[] calldata validatorSignatures,
-        paramsLanding calldata params
+        MessageMonitorLib.paramsLanding calldata params
     ) external payable override engineCheck {
         if (msg.sender != trustedSequencer) {
             revert Errors.AccessDenied();
@@ -101,7 +108,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function _validateSignature(
-        paramsLanding calldata params,
+        MessageMonitorLib.paramsLanding calldata params,
         bytes[] calldata responseMakerSignatures
     ) internal pure {
         bytes32 data = abi.encode(params).hash();
@@ -117,15 +124,21 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                     )
                 )
             );
-
-            console.log("validatorArray[i]: %s", validatorArray[i]);
         }
     }
 
-    function quote(
-        paramsLaunch calldata params
-    ) public pure override returns (uint256) {
-        (params);
-        return 0;
+    function setPaymentSystem(
+        address paymentSystemAddress
+    ) external override onlyOwner {
+        if (paymentSystemAddress == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        paymentSystem = IMessagePaymentSystem(paymentSystemAddress);
+    }
+
+    function fetchProtocalFee(
+        MessageMonitorLib.paramsLaunch calldata params
+    ) public view override returns (uint256) {
+        return paymentSystem.fetchProtocalFee(params);
     }
 }

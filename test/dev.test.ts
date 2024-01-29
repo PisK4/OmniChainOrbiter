@@ -9,6 +9,8 @@ import {
   IMessageSpaceStation,
   Helper,
   Helper__factory,
+  MessagePaymentSystem,
+  MessagePaymentSystem__factory,
 } from "../typechain-types";
 import { ethers } from "hardhat";
 import { BytesLike, AbiCoder, keccak256, toBeArray, EventLog } from "ethers";
@@ -20,11 +22,18 @@ describe("OrbiterStation", () => {
   let signers: HardhatEthersSigner[];
   let DAppDemo: ChainA_EncodeMessageDemo;
   let HelperContract: Helper;
+  let PaymentSystem: MessagePaymentSystem;
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
+
+    PaymentSystem = await new MessagePaymentSystem__factory(
+      signers[0]
+    ).deploy();
+
     OrbiterStation = await new MessageSpaceStation__factory(signers[0]).deploy(
-      await signers[0].getAddress()
+      await signers[0].getAddress(),
+      await PaymentSystem.getAddress()
     );
     await OrbiterStation.waitForDeployment();
     console.log(
