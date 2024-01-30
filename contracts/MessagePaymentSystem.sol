@@ -8,6 +8,9 @@ import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
+/// DApp should pay the protocol fee to the Station before they send the cross-chain message
+/// MessagePaymentSystem is the contract that calculate the protocol fee
+/// anyone can call the fetchProtocalFee function to get the protocol fee for free
 contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;

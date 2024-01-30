@@ -5,6 +5,11 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IDepositSpaceStation} from "./interface/IDepositSpaceStation.sol";
 import {Errors} from "./library/Errors.sol";
 
+/// the DepositSpaceStation is a contract that user can deposit eth to become a validator
+/// anyone can deposit eth to become a validator, the minimal deposit is 32 eth
+/// validator can withdraw eth after the withdraw delay time
+/// validator will get reward after they validate the cross-chain message & response to Relayer in time
+/// the profit will store in the spare merkle tree, the proctol will update the merkle tree root after a period of time
 contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     uint256 private immutable MINIMAL_DEPOSIT_HARDCODE = 32 ether;
     uint256 private _minimalDeposit = MINIMAL_DEPOSIT_HARDCODE;
@@ -13,7 +18,9 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     uint64 private immutable MAXIMAL_WITHDRAW_DELAY_HARDCODE = 30 days;
     uint64 private _withdrawDelay = MINIMAL_WITHDRAW_DELAY_HARDCODE;
 
+    /// @dev submitter is the address that submit the merkle tree root
     address public submitter;
+    /// @dev spare merkle tree root
     bytes public smtRoot;
 
     /// @dev validator List
@@ -21,6 +28,9 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     /// @dev withdraw request list
     mapping(address => uint64) private _withdrawRequestList;
 
+    /// @notice incase of validator transfer eth to the deposit contract directly by mistake
+    ///         we will check the value of all the transaction which contains the eth
+    ///         if the value is greater than the minimal deposit, we will register the validator
     receive() external payable {
         if (msg.value >= _minimalDeposit) {
             _register();
@@ -75,6 +85,7 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
         submitter = newSubmitter;
     }
 
+    /// @notice call this function to register as a validator, the minimal deposit is 32 eth
     function register() external payable override {
         if (msg.value < _minimalDeposit) {
             revert Errors.ValueNotMatched();
@@ -87,12 +98,15 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
         emit Register(msg.sender, 0);
     }
 
+    /// @notice if you want to withdraw eth, you need to call this function to request withdraw
+    ///        after the withdraw delay time, you can call the withdraw function to withdraw eth
     function withdrawRequest() external onlyValidator {
         uint64 targetWithdrawTime = uint64(block.timestamp) + _withdrawDelay;
         _withdrawRequestList[msg.sender] = targetWithdrawTime;
         emit WithdarwRequest(msg.sender, targetWithdrawTime);
     }
 
+    /// @notice once the withdraw delay time is reached, you can call this function to withdraw eth
     function withdarw(
         bytes32[] calldata proof,
         bytes32 leaf

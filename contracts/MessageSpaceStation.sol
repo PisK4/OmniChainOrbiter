@@ -11,8 +11,9 @@ import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 
-import "hardhat/console.sol";
-
+/// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
+/// Launch is the function that user or DApps send cross-chain message to orther chain
+/// Landing is the function that trusted sequencer send cross-chain message to the Station
 contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
