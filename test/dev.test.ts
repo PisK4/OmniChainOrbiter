@@ -61,11 +61,12 @@ describe("OrbiterStation", () => {
       58000,
       100
     );
-
+    // 获取当前时间戳
+    const latestArrivalTime = Math.floor(Date.now() / 1000) + 10000;
     let paramsLaunch: IMessageSpaceStation.ParamsLaunchStruct = {
       destChainld: (await ethers.provider.getNetwork()).chainId,
       earlistArrivalTime: 1,
-      latestArrivalTime: 1,
+      latestArrivalTime: latestArrivalTime,
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),
       aditionParams: "0x",
@@ -94,7 +95,7 @@ describe("OrbiterStation", () => {
     let paramsLanding: IMessageSpaceStation.ParamsLandingStruct = {
       scrChainld: 1,
       earlistArrivalTime: 1,
-      latestArrivalTime: 1,
+      latestArrivalTime: latestArrivalTime,
       nonceLandingCurrent: 0,
       sender: await signers[0].getAddress(),
       relayer: await signers[0].getAddress(),

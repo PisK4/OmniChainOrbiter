@@ -77,6 +77,9 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         emit SuccessfulLaunch(messageId, params);
     }
 
+    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
+    /// @param validatorSignatures the signatures of the message
+    /// @param params the cross-chain needed params struct
     function Landing(
         bytes[] calldata validatorSignatures,
         paramsLanding calldata params
@@ -101,13 +104,18 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             revert Errors.ValueNotMatched();
         }
 
-        bytes1 messageType = params.message.fetchMessageType();
-        if (messageType == MessageMonitorLib.EXCUTE) {
-            params.message.excuteSignature();
-        } else if (messageType == MessageMonitorLib.MAIL) {
-            // TODO: handle mail message
-        } else {
-            defaultLandingHandler.handleLandingParams(params);
+        if (
+            params.latestArrivalTime > block.timestamp &&
+            params.earlistArrivalTime < block.timestamp
+        ) {
+            bytes1 messageType = params.message.fetchMessageType();
+            if (messageType == MessageMonitorLib.EXCUTE) {
+                params.message.excuteSignature();
+            } else if (messageType == MessageMonitorLib.MAIL) {
+                // TODO: handle mail message
+            } else {
+                defaultLandingHandler.handleLandingParams(params);
+            }
         }
 
         emit SuccessfulLanding(params.messgeId, params);
