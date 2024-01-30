@@ -14,28 +14,6 @@ library MessageMonitorLib {
 
     uint16 constant returnDataSize = 32;
 
-    struct paramsLaunch {
-        uint64 destChainld;
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        address sender;
-        address relayer;
-        bytes aditionParams;
-        bytes message;
-    }
-
-    struct paramsLanding {
-        uint64 scrChainld;
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        uint24 nonceLandingCurrent;
-        address sender;
-        address relayer;
-        uint256 value;
-        bytes32 messgeId;
-        bytes message;
-    }
-
     function update(
         mapping(uint64 => mapping(address => uint24)) storage self,
         uint64 chainId,
@@ -62,11 +40,13 @@ library MessageMonitorLib {
 
     function fetchMessageId(
         uint24 nonce,
-        uint64 chainId,
+        uint256 srcChainId,
+        uint64 destChainId,
         address sender,
         address relayer
     ) internal pure returns (bytes32) {
-        return abi.encode(nonce, chainId, sender, relayer).hash();
+        return
+            abi.encode(nonce, srcChainId, destChainId, sender, relayer).hash();
     }
 
     function excuteSignature(

@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MessageMonitorLib} from "./MessageMonitor.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
+import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
@@ -13,13 +14,11 @@ contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
     using MessageMonitorLib for uint24;
     using Utils for bytes;
 
-    receive() external payable {}
+    constructor() Ownable(msg.sender) {}
 
-    constructor() payable Ownable(msg.sender) {}
-
-    function fetchProtocalFee(
-        MessageMonitorLib.paramsLaunch calldata params
-    ) public pure override returns (uint256) {
+    function fetchProtocalFee_(
+        IMessageSpaceStation.paramsLaunch calldata params
+    ) external pure override returns (uint256) {
         (params);
         return 0;
     }

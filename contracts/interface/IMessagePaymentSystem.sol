@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {MessageMonitorLib} from "../MessageMonitor.sol";
+import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
 
 interface IMessagePaymentSystem {
-    function fetchProtocalFee(
-        MessageMonitorLib.paramsLaunch calldata params
+    function fetchProtocalFee_(
+        IMessageSpaceStation.paramsLaunch calldata params
     ) external view returns (uint256);
 }
