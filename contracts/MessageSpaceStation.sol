@@ -22,16 +22,19 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using Utils for bytes;
     using ECDSA for bytes32;
 
+    uint24 constant MINIMAL_ARRIVAL_TIME = 3 minutes;
+    uint24 constant MAXIMAL_ARRIVAL_TIME = 30 days;
+
     /// @dev trusted sequencer, we will execute the message from this address
     address public trustedSequencer;
+    /// @dev engine status 0x01 is stop, 0x02 is start
+    uint8 public isPause;
     /// @dev handle default landing mode contract address
     IDefaultLandingHandler public defaultLandingHandler;
     /// @dev protocol fee payment system address
     IMessagePaymentSystem public paymentSystem;
-    /// @dev engine status 0x01 is stop, 0x02 is start
-    uint8 public isPause;
-    /// @dev number of trusted messageSingners limit of the message
-    uint8 constant validatorSignaturesLowerLimit = 2;
+
+    mapping(bytes32 => bytes32) public mptRoots;
 
     receive() external payable {}
 
@@ -52,6 +55,23 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         _;
     }
 
+    modifier cargoInspection(
+        uint64 aggregatedEarlistArrivalTime,
+        uint64 aggregatedLatestArrivalTime
+    ) {
+        if (msg.sender != trustedSequencer) {
+            revert Errors.AccessDenied();
+        }
+
+        if (
+            aggregatedEarlistArrivalTime > block.timestamp ||
+            aggregatedLatestArrivalTime < block.timestamp
+        ) {
+            revert Errors.TimeNotReached();
+        }
+        _;
+    }
+
     /// @notice LaunchPad is the function that user or DApps send cross-chain message to orther chain
     ///         Once the message is sent, the Relay will validate the message and send it to the target chain
     /// @dev the arguments of the function is packed in the paramsLaunch struct
@@ -61,9 +81,20 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     function Launch(
         paramsLaunch calldata params
     ) external payable override engineCheck returns (bytes32 messageId) {
-        if (msg.value != fetchProtocalFee(params)) {
+        if (msg.value != FetchProtocalFee(params)) {
             revert Errors.ValueNotMatched();
         }
+
+        if (
+            (params.earlistArrivalTime <
+                block.timestamp + MINIMAL_ARRIVAL_TIME) ||
+            (params.latestArrivalTime >
+                block.timestamp + MAXIMAL_ARRIVAL_TIME) ||
+            params.latestArrivalTime < params.earlistArrivalTime
+        ) {
+            revert Errors.ArrivalTimeNotMakeSense();
+        }
+
         messageId = nonceLanding[params.destChainld][params.sender]
             .fetchMessageId(
                 block.chainid,
@@ -78,60 +109,95 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     /// @dev trusted sequencer will call this function to send cross-chain message to the Station
-    /// @param validatorSignatures the signatures of the message
+    /// @param mptRoot the merkle patricia tree root of all message
+    /// @param aggregatedEarlistArrivalTime the earlist arrival time of all message
+    /// @param aggregatedLatestArrivalTime the latest arrival time of all message
     /// @param params the cross-chain needed params struct
     function Landing(
-        bytes[] calldata validatorSignatures,
-        paramsLanding calldata params
-    ) external payable override engineCheck {
-        if (msg.sender != trustedSequencer) {
-            revert Errors.AccessDenied();
+        bytes32 mptRoot,
+        uint64 aggregatedEarlistArrivalTime,
+        uint64 aggregatedLatestArrivalTime,
+        paramsLanding[] calldata params
+    )
+        external
+        payable
+        override
+        engineCheck
+        cargoInspection(
+            aggregatedEarlistArrivalTime,
+            aggregatedLatestArrivalTime
+        )
+    {
+        bytes32 mptRootKeyHash = abi.encode(params).hash();
+        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
+            revert Errors.DuplicatedValue();
         }
-        (validatorSignatures);
-        // _validateSignature(params, validatorSignatures);
-        if (
-            nonceLanding.compare(
-                params.scrChainld,
-                params.sender,
-                params.nonceLandingCurrent
-            ) != true
-        ) {
-            revert Errors.NonceNotMatched();
-        }
-        nonceLanding.update(uint64(block.chainid), params.sender);
+        mptRoots[mptRootKeyHash] = mptRoot;
 
-        if (params.value != msg.value) {
-            revert Errors.ValueNotMatched();
-        }
+        for (uint256 i = 0; i < params.length; i++) {
+            if (params[i].value != msg.value) {
+                revert Errors.ValueNotMatched();
+            }
+            if (
+                nonceLanding.compare(
+                    params[i].srcChainld,
+                    params[i].sender,
+                    params[i].nonceLandingCurrent
+                ) != true
+            ) {
+                revert Errors.NonceNotMatched();
+            }
+            nonceLanding.update(uint64(block.chainid), params[i].sender);
 
-        if (
-            params.latestArrivalTime > block.timestamp &&
-            params.earlistArrivalTime < block.timestamp
-        ) {
-            bytes1 messageType = params.message.fetchMessageType();
-            if (messageType == MessageMonitorLib.EXCUTE) {
-                params.message.excuteSignature();
-            } else if (messageType == MessageMonitorLib.MAIL) {
+            bytes1 messageType = params[i].message.fetchMessageType();
+            if (messageType == MessageMonitorLib.AUTO_PILOT) {
+                params[i].message.excuteSignature();
+            } else if (messageType == MessageMonitorLib.MESSAGE_POST) {
                 // TODO: handle mail message
             } else {
-                defaultLandingHandler.handleLandingParams(params);
+                defaultLandingHandler.handleLandingParams(params[i]);
             }
+            emit SuccessfulLanding(params[i].messgeId, params[i]);
         }
+    }
 
-        emit SuccessfulLanding(params.messgeId, params);
+    function Landing(
+        bytes32 mptRoot,
+        uint64 aggregatedEarlistArrivalTime,
+        uint64 aggregatedLatestArrivalTime,
+        paramsBatchLanding[] calldata params
+    )
+        external
+        override
+        engineCheck
+        cargoInspection(
+            aggregatedEarlistArrivalTime,
+            aggregatedLatestArrivalTime
+        )
+    {
+        bytes32 mptRootKeyHash = abi.encode(params).hash();
+        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
+            revert Errors.DuplicatedValue();
+        }
+        mptRoots[mptRootKeyHash] = mptRoot;
+
+        for (uint256 i = 0; i < params.length; i++) {
+            emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
+        }
     }
 
     /// @dev Only owner can call this function to stop or restart the engine
     /// @param _isPause true is stop, false is start
-    function pause(bool _isPause) external override onlyOwner {
+    function Pause(bool _isPause) external override onlyOwner {
         if (_isPause) {
             isPause = MessageMonitorLib.ENGINE_STOP;
         } else {
             isPause = MessageMonitorLib.ENGINE_START;
         }
+        emit EngineStatusRefreshing(_isPause);
     }
 
-    function withdarw(uint256 amount) external override {
+    function Withdarw(uint256 amount) external override {
         (bool sent, ) = payable(owner()).call{value: amount}("");
         if (!sent) {
             revert Errors.WithdrawError();
@@ -158,20 +224,21 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
     }
 
-    function setPaymentSystem(
+    function SetPaymentSystem(
         address paymentSystemAddress
     ) external override onlyOwner {
         if (paymentSystemAddress == address(0)) {
             revert Errors.InvalidAddress();
         }
         paymentSystem = IMessagePaymentSystem(paymentSystemAddress);
+        emit PaymentSystemChanging(paymentSystemAddress);
     }
 
     /// @dev feel free to call this function before pass message to the Station,
     ///      this method will return the protocol fee that the message need to pay, longer message will pay more
     /// @param params the cross-chain needed params struct
     /// @return protocol fee, the unit is wei
-    function fetchProtocalFee(
+    function FetchProtocalFee(
         paramsLaunch calldata params
     ) public view override returns (uint256) {
         return paymentSystem.fetchProtocalFee_(params);

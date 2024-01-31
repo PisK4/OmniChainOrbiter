@@ -6,8 +6,10 @@ import {Utils} from "./library/Utils.sol";
 library MessageMonitorLib {
     using MessageMonitorLib for address;
     using Utils for bytes;
-    bytes1 constant MAIL = 0x00;
-    bytes1 constant EXCUTE = 0x01;
+    bytes1 constant DEFAULT = 0x00;
+    bytes1 constant AUTO_PILOT = 0x01;
+    bytes1 constant MESSAGE_POST = 0x02;
+    bytes1 constant MAX_MODE = 0xFF;
 
     uint8 constant ENGINE_STOP = 0x01;
     uint8 constant ENGINE_START = 0x02;
