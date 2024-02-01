@@ -18,10 +18,13 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     uint64 private immutable MAXIMAL_WITHDRAW_DELAY_HARDCODE = 30 days;
     uint64 private _withdrawDelay = MINIMAL_WITHDRAW_DELAY_HARDCODE;
 
+    // invalid merkle tree root
+    bytes32 private immutable INVALID_SMT_ROOT = bytes32(uint256(1));
+
     /// @dev submitter is the address that submit the merkle tree root
     address public submitter;
     /// @dev spare merkle tree root
-    bytes public smtRoot;
+    bytes32 public smtRoot = INVALID_SMT_ROOT;
 
     /// @dev validator List
     mapping(address => bool) public validators;
@@ -32,9 +35,9 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     ///         we will check the value of all the transaction which contains the eth
     ///         if the value is greater than the minimal deposit, we will register the validator
     receive() external payable {
-        if (msg.value >= _minimalDeposit) {
-            _register();
-        }
+        // if (msg.value >= _minimalDeposit) {
+        // _register();
+        // }
     }
 
     constructor() payable Ownable(msg.sender) {
@@ -42,7 +45,14 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     }
 
     modifier onlyValidator() {
-        if (validators[msg.sender] != true) {
+        // if (validators[msg.sender] != true) {
+        //     revert Errors.AccessDenied();
+        // }
+        _;
+    }
+
+    modifier onlySubmitter() {
+        if (msg.sender != submitter) {
             revert Errors.AccessDenied();
         }
         _;
@@ -85,12 +95,20 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
         submitter = newSubmitter;
     }
 
+    function submitSmtRoot(bytes32 root) external override onlySubmitter {
+        _changeNewSmtRoot(root);
+    }
+
+    function _changeNewSmtRoot(bytes32 root) internal {
+        smtRoot = root;
+    }
+
     /// @notice call this function to register as a validator, the minimal deposit is 32 eth
     function register() external payable override {
         if (msg.value < _minimalDeposit) {
             revert Errors.ValueNotMatched();
         }
-        _register();
+        // _register();
     }
 
     function _register() internal {
@@ -109,8 +127,13 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     /// @notice once the withdraw delay time is reached, you can call this function to withdraw eth
     function withdarw(
         bytes32[] calldata proof,
-        bytes32 leaf
+        bytes32 leaf,
+        uint256 amount
     ) external override onlyValidator {
+        if (smtRoot == INVALID_SMT_ROOT) {
+            revert Errors.RootNotSubmitted();
+        }
+
         if (_withdrawRequestList[msg.sender] > uint64(block.timestamp)) {
             revert Errors.TimeNotReached();
         }
@@ -120,7 +143,7 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
             revert Errors.VerifyFailed();
         }
 
-        uint256 amount = 0;
+        _changeNewSmtRoot(INVALID_SMT_ROOT);
 
         (bool sent, ) = payable(msg.sender).call{value: amount}("");
         if (!sent) {

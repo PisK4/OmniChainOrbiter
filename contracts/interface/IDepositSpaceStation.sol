@@ -16,7 +16,13 @@ interface IDepositSpaceStation {
 
     function setSubmitter(address newSubmitter) external;
 
+    function submitSmtRoot(bytes32 root) external;
+
     function register() external payable;
 
-    function withdarw(bytes32[] calldata proof, bytes32 leaf) external;
+    function withdarw(
+        bytes32[] calldata proof,
+        bytes32 leaf,
+        uint256 amount
+    ) external;
 }

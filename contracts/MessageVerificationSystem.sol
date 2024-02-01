@@ -6,7 +6,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {IMessageVerificationSystem} from "./interface/IMessageVerificationSystem.sol";
 
 contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
-    constructor(bytes32 _root) Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {}
 
     function verifyProofs(
         bytes32[] memory proof,

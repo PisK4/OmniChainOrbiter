@@ -4,12 +4,14 @@ pragma solidity ^0.8.23;
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
+
+import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
-import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
@@ -108,6 +110,32 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         emit SuccessfulLaunch(messageId, params);
     }
 
+    /// @notice batch landing message to the Station
+    function Landing(
+        bytes32 mptRoot,
+        uint64 aggregatedEarlistArrivalTime,
+        uint64 aggregatedLatestArrivalTime,
+        paramsBatchLanding[] calldata params
+    )
+        external
+        override
+        engineCheck
+        cargoInspection(
+            aggregatedEarlistArrivalTime,
+            aggregatedLatestArrivalTime
+        )
+    {
+        bytes32 mptRootKeyHash = abi.encode(params).hash();
+        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
+            revert Errors.DuplicatedValue();
+        }
+        mptRoots[mptRootKeyHash] = mptRoot;
+
+        for (uint256 i = 0; i < params.length; i++) {
+            emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
+        }
+    }
+
     /// @dev trusted sequencer will call this function to send cross-chain message to the Station
     /// @param mptRoot the merkle patricia tree root of all message
     /// @param aggregatedEarlistArrivalTime the earlist arrival time of all message
@@ -158,31 +186,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                 defaultLandingHandler.handleLandingParams(params[i]);
             }
             emit SuccessfulLanding(params[i].messgeId, params[i]);
-        }
-    }
-
-    function Landing(
-        bytes32 mptRoot,
-        uint64 aggregatedEarlistArrivalTime,
-        uint64 aggregatedLatestArrivalTime,
-        paramsBatchLanding[] calldata params
-    )
-        external
-        override
-        engineCheck
-        cargoInspection(
-            aggregatedEarlistArrivalTime,
-            aggregatedLatestArrivalTime
-        )
-    {
-        bytes32 mptRootKeyHash = abi.encode(params).hash();
-        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
-            revert Errors.DuplicatedValue();
-        }
-        mptRoots[mptRootKeyHash] = mptRoot;
-
-        for (uint256 i = 0; i < params.length; i++) {
-            emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
         }
     }
 

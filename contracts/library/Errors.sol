@@ -8,6 +8,7 @@ library Errors {
     error OutOfGas();
     error ValueNotMatched();
     error AccessDenied();
+    error RootNotSubmitted();
     error TimeNotReached();
     error VerifyFailed();
     error InvalidAddress();
