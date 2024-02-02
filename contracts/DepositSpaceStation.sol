@@ -139,7 +139,7 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
         }
         _withdrawRequestList[msg.sender] = 0;
 
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
+        bytes32 leaf = keccak256(abi.encode(msg.sender, amount));
 
         if (verifySmtRoot(proof, leaf) != true) {
             revert Errors.VerifyFailed();
