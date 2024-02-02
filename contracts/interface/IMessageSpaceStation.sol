@@ -3,13 +3,13 @@ pragma solidity ^0.8.23;
 
 interface IMessageSpaceStation {
     struct paramsLaunch {
-        uint64 destChainld;
+        uint64[] destChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
         address sender;
         address relayer;
-        bytes aditionParams;
-        bytes message;
+        bytes[] aditionParams;
+        bytes[] message;
     }
 
     struct paramsLanding {
@@ -27,7 +27,7 @@ interface IMessageSpaceStation {
         bytes32 messgeId;
     }
 
-    event SuccessfulLaunch(bytes32 indexed messageId, paramsLaunch params);
+    event SuccessfulLaunch(bytes32[] indexed messageId, paramsLaunch params);
     event SuccessfulLanding(bytes32 indexed messageId, paramsLanding params);
     event SuccessfulBatchLanding(
         bytes32 indexed messageId,
@@ -38,7 +38,7 @@ interface IMessageSpaceStation {
 
     function Launch(
         paramsLaunch calldata params
-    ) external payable returns (bytes32 messageId);
+    ) external payable returns (bytes32[] memory messageId);
 
     function Landing(
         bytes32 mptRoot,
@@ -63,4 +63,9 @@ interface IMessageSpaceStation {
     function FetchProtocalFee(
         paramsLaunch calldata params
     ) external view returns (uint256);
+
+    function configTrustedSequencer(
+        address trustedSequencerAddr,
+        bool state
+    ) external;
 }

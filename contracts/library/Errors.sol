@@ -12,6 +12,7 @@ library Errors {
     error TimeNotReached();
     error VerifyFailed();
     error InvalidAddress();
+    error InvalidMessage();
     error DuplicatedValue();
     error ArrivalTimeNotMakeSense();
 }

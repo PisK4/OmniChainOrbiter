@@ -24,6 +24,15 @@ library MessageMonitorLib {
         self[chainId][sender]++;
     }
 
+    function updates(
+        mapping(uint64 => mapping(address => uint24)) storage self,
+        uint64 chainId,
+        address sender,
+        uint24 updateTimes
+    ) internal {
+        self[chainId][sender] += updateTimes;
+    }
+
     function compare(
         mapping(uint64 => mapping(address => uint24)) storage self,
         uint64 chainId,

@@ -24,11 +24,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using Utils for bytes;
     using ECDSA for bytes32;
 
-    uint24 constant MINIMAL_ARRIVAL_TIME = 3 minutes;
-    uint24 constant MAXIMAL_ARRIVAL_TIME = 30 days;
+    uint24 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
+    uint24 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
+    uint64 immutable UNIVERSE_CHAIN_ID = type(uint64).max - 1;
 
     /// @dev trusted sequencer, we will execute the message from this address
-    address public trustedSequencer;
+    mapping(address => bool) public trustedSequencer;
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public isPause;
     /// @dev handle default landing mode contract address
@@ -41,11 +42,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     receive() external payable {}
 
     constructor(
-        address _trustedSequencer,
-        address _paymentSystemAddress
+        address trustedSequencerAddr,
+        address paymentSystemAddr
     ) payable Ownable(msg.sender) {
-        trustedSequencer = _trustedSequencer;
-        paymentSystem = IMessagePaymentSystem(_paymentSystemAddress);
+        configTrustedSequencer(trustedSequencerAddr, true);
+        paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
     }
 
     /// @notice if engine is stop, all message which pass to the Station will be revert
@@ -61,7 +62,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime
     ) {
-        if (msg.sender != trustedSequencer) {
+        if (trustedSequencer[msg.sender] != true) {
             revert Errors.AccessDenied();
         }
 
@@ -82,7 +83,13 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @return messageId the message id of the message
     function Launch(
         paramsLaunch calldata params
-    ) external payable override engineCheck returns (bytes32 messageId) {
+    )
+        external
+        payable
+        override
+        engineCheck
+        returns (bytes32[] memory messageId)
+    {
         if (msg.value != FetchProtocalFee(params)) {
             revert Errors.ValueNotMatched();
         }
@@ -97,17 +104,109 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             revert Errors.ArrivalTimeNotMakeSense();
         }
 
-        messageId = nonceLanding[params.destChainld][params.sender]
-            .fetchMessageId(
+        if (params.message.length == 0) {
+            revert Errors.InvalidMessage();
+        }
+
+        if (params.destChainld.length == params.message.length) {
+            messageId = _LaunchOne2One(params);
+        } else if (
+            (params.destChainld.length > 1) && (params.message.length == 1)
+        ) {
+            messageId = _LaunchOne2Many(params);
+        } else if (
+            (params.destChainld.length == 1) && (params.message.length > 1)
+        ) {
+            messageId = _LaunchMany2One(params);
+        } else if (params.destChainld.length == 0) {
+            messageId = _Lanch2Universe(params);
+        } else {
+            revert Errors.InvalidMessage();
+        }
+
+        if (messageId.length != params.message.length) {
+            revert Errors.InvalidMessage();
+        }
+
+        emit SuccessfulLaunch(messageId, params);
+    }
+
+    /// @notice each message will be sent to corresponding chain
+    /// @dev Explain to a developer any extra details
+    function _LaunchOne2One(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonce(
+            params,
+            params.message.length
+        );
+    }
+
+    /// @notice same message will be sent to multiple chains
+    /// @dev Explain to a developer any extra details
+    function _LaunchOne2Many(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonce(
+            params,
+            params.destChainld.length
+        );
+    }
+
+    /// @notice many message will be sent to one chain
+    /// @dev Explain to a developer any extra details
+    function _LaunchMany2One(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+            params,
+            params.destChainld[0],
+            params.message.length
+        );
+    }
+
+    /// @notice the message will be sent to all chains
+    function _Lanch2Universe(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+            params,
+            UNIVERSE_CHAIN_ID,
+            params.message.length
+        );
+    }
+
+    function _fetchMessageIdThenUpdateNonce(
+        paramsLaunch calldata params,
+        uint256 loopMax
+    ) private returns (bytes32[] memory messageId) {
+        for (uint256 i = 0; i < loopMax; i++) {
+            messageId[i] = nonceLanding[params.destChainld[i]][params.sender]
+                .fetchMessageId(
+                    block.chainid,
+                    params.destChainld[i],
+                    params.sender,
+                    params.relayer
+                );
+
+            nonceLaunch.update(params.destChainld[i], params.sender);
+        }
+    }
+
+    function _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+        paramsLaunch calldata params,
+        uint64 chainId,
+        uint256 loopMax
+    ) private returns (bytes32[] memory messageId) {
+        for (uint256 i = 0; i < loopMax; i++) {
+            messageId[i] = nonceLanding[chainId][params.sender].fetchMessageId(
                 block.chainid,
-                params.destChainld,
+                chainId,
                 params.sender,
                 params.relayer
             );
-
-        nonceLaunch.update(params.destChainld, params.sender);
-
-        emit SuccessfulLaunch(messageId, params);
+        }
+        nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
     }
 
     /// @notice batch landing message to the Station
@@ -245,5 +344,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         paramsLaunch calldata params
     ) public view override returns (uint256) {
         return paymentSystem.fetchProtocalFee_(params);
+    }
+
+    function configTrustedSequencer(
+        address trustedSequencerAddr,
+        bool state
+    ) public override onlyOwner {
+        trustedSequencer[trustedSequencerAddr] = state;
     }
 }
