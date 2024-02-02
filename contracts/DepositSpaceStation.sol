@@ -16,11 +16,12 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
 
     uint64 private immutable MINIMAL_WITHDRAW_DELAY_HARDCODE = 7 days;
     uint64 private immutable MAXIMAL_WITHDRAW_DELAY_HARDCODE = 30 days;
-    uint64 private _withdrawDelay = MINIMAL_WITHDRAW_DELAY_HARDCODE;
 
     // invalid merkle tree root
     bytes32 private immutable INVALID_SMT_ROOT = bytes32(uint256(1));
 
+    /// @dev withdraw delay time, determine how long the validator can withdraw eth after they request withdraw
+    uint64 private _withdrawDelay = MINIMAL_WITHDRAW_DELAY_HARDCODE;
     /// @dev submitter is the address that submit the merkle tree root
     address public submitter;
     /// @dev spare merkle tree root
@@ -127,7 +128,6 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     /// @notice once the withdraw delay time is reached, you can call this function to withdraw eth
     function withdarw(
         bytes32[] calldata proof,
-        bytes32 leaf,
         uint256 amount
     ) external override onlyValidator {
         if (smtRoot == INVALID_SMT_ROOT) {
@@ -138,6 +138,8 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
             revert Errors.TimeNotReached();
         }
         _withdrawRequestList[msg.sender] = 0;
+
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
 
         if (verifySmtRoot(proof, leaf) != true) {
             revert Errors.VerifyFailed();

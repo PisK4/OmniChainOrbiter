@@ -20,9 +20,5 @@ interface IDepositSpaceStation {
 
     function register() external payable;
 
-    function withdarw(
-        bytes32[] calldata proof,
-        bytes32 leaf,
-        uint256 amount
-    ) external;
+    function withdarw(bytes32[] calldata proof, uint256 amount) external;
 }
