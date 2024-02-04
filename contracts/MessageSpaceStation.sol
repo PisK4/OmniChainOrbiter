@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
@@ -20,9 +18,9 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
     using MessageMonitorLib for uint24;
-    using MessageHashUtils for bytes32;
+    // using MessageHashUtils for bytes32;
     using Utils for bytes;
-    using ECDSA for bytes32;
+    // using ECDSA for bytes32;
 
     uint24 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
     uint24 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
@@ -303,26 +301,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         (bool sent, ) = payable(owner()).call{value: amount}("");
         if (!sent) {
             revert Errors.WithdrawError();
-        }
-    }
-
-    function _validateSignature(
-        paramsLanding calldata params,
-        bytes[] calldata responseMakerSignatures
-    ) internal pure {
-        bytes32 data = abi.encode(params).hash();
-
-        address[] memory validatorArray = new address[](
-            responseMakerSignatures.length
-        );
-        for (uint256 i = 0; i < responseMakerSignatures.length; i++) {
-            validatorArray[i] = address(
-                uint160(
-                    data.toEthSignedMessageHash().recover(
-                        responseMakerSignatures[i]
-                    )
-                )
-            );
         }
     }
 
