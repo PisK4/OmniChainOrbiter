@@ -24,7 +24,7 @@ contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
         bytes32 root,
         IMessageSpaceStation.paramsLaunch[] calldata params,
         bytes[] calldata launchParamsSignatures
-    ) external pure override {
+    ) external override {
         bytes32[] memory leaves = new bytes32[](params.length);
         for (uint256 i = 0; i < params.length; i++) {
             leaves[i] = abi.encode(params[i]).hash();
@@ -37,6 +37,7 @@ contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
         ) {
             revert Errors.VerifyFailed();
         }
+        emit LaunchMessageVerified(params);
     }
 
     function _validateSignature(
