@@ -25,11 +25,16 @@ contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
         IMessageSpaceStation.paramsLaunch[] calldata params,
         bytes[] calldata launchParamsSignatures
     ) external override {
+        address[] memory validators = _validateSignature(
+            abi.encode(params).hash(),
+            launchParamsSignatures
+        );
+        // TODO: register validators
+        (validators);
         bytes32[] memory leaves = new bytes32[](params.length);
         for (uint256 i = 0; i < params.length; i++) {
             leaves[i] = abi.encode(params[i]).hash();
         }
-        _validateSignature(abi.encode(params).hash(), launchParamsSignatures);
 
         if (
             MerkleProof.multiProofVerify(proof, proofFlags, root, leaves) ==
@@ -44,7 +49,7 @@ contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
         // IMessageSpaceStation.paramsLaunch calldata params,
         bytes32 encodedParams,
         bytes[] calldata launchParamsSignatures
-    ) internal pure {
+    ) internal pure returns (address[] memory) {
         // bytes32 data = abi.encode(params).hash();
 
         address[] memory validatorArray = new address[](
@@ -59,5 +64,6 @@ contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
                 )
             );
         }
+        return validatorArray;
     }
 }
