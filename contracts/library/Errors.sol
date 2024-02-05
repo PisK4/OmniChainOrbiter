@@ -15,4 +15,5 @@ library Errors {
     error InvalidMessage();
     error DuplicatedValue();
     error ArrivalTimeNotMakeSense();
+    error LandingPadOccupied();
 }

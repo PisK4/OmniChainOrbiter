@@ -30,12 +30,14 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     mapping(address => bool) public trustedSequencer;
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public isPause;
+    /// @dev reentrancy guard
+    uint8 private _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
     /// @dev handle default landing mode contract address
     IDefaultLandingHandler public defaultLandingHandler;
     /// @dev protocol fee payment system address
     IMessagePaymentSystem public paymentSystem;
 
-    mapping(bytes32 => bytes32) public mptRoots;
+    bytes32 public mptRoots;
 
     receive() external payable {}
 
@@ -54,6 +56,18 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             revert Errors.StationPaused();
         }
         _;
+    }
+
+    modifier landingEngineCheck() {
+        if (isPause == MessageMonitorLib.ENGINE_STOP) {
+            revert Errors.StationPaused();
+        }
+        if (_isLanding == MessageMonitorLib.LANDING_PAD_OCCUPIED) {
+            revert Errors.LandingPadOccupied();
+        }
+        _isLanding = MessageMonitorLib.LANDING_PAD_OCCUPIED;
+        _;
+        _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
     }
 
     modifier cargoInspection(
@@ -156,7 +170,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     function _LaunchMany2One(
         paramsLaunch calldata params
     ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+        messageId = _fetchMessageIdThenUpdateNonce(
             params,
             params.destChainld[0],
             params.message.length
@@ -167,7 +181,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     function _Lanch2Universe(
         paramsLaunch calldata params
     ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+        messageId = _fetchMessageIdThenUpdateNonce(
             params,
             UNIVERSE_CHAIN_ID,
             params.message.length
@@ -191,7 +205,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
     }
 
-    function _fetchMessageIdThenUpdateNonceWitchSpecialChainId(
+    function _fetchMessageIdThenUpdateNonce(
         paramsLaunch calldata params,
         uint64 chainId,
         uint256 loopMax
@@ -216,17 +230,13 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     )
         external
         override
-        engineCheck
+        landingEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTime,
             aggregatedLatestArrivalTime
         )
     {
-        bytes32 mptRootKeyHash = abi.encode(params).hash();
-        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
-            revert Errors.DuplicatedValue();
-        }
-        mptRoots[mptRootKeyHash] = mptRoot;
+        mptRoots = mptRoot;
 
         for (uint256 i = 0; i < params.length; i++) {
             emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
@@ -247,17 +257,13 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         external
         payable
         override
-        engineCheck
+        landingEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTime,
             aggregatedLatestArrivalTime
         )
     {
-        bytes32 mptRootKeyHash = abi.encode(params).hash();
-        if (mptRoots[mptRootKeyHash] != bytes32(0)) {
-            revert Errors.DuplicatedValue();
-        }
-        mptRoots[mptRootKeyHash] = mptRoot;
+        mptRoots = mptRoot;
 
         for (uint256 i = 0; i < params.length; i++) {
             if (params[i].value != msg.value) {

@@ -14,6 +14,9 @@ library MessageMonitorLib {
     uint8 constant ENGINE_STOP = 0x01;
     uint8 constant ENGINE_START = 0x02;
 
+    uint8 constant LANDING_PAD_FREE = 0x01;
+    uint8 constant LANDING_PAD_OCCUPIED = 0x02;
+
     uint16 constant returnDataSize = 32;
 
     function update(
