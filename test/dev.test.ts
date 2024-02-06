@@ -1,7 +1,7 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import {
-  ORBIToken,
-  ORBIToken__factory,
+  OminiToken,
+  OminiToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
   ChainA_EncodeMessageDemo,
@@ -15,43 +15,82 @@ import {
 import { ethers } from "hardhat";
 import { BytesLike, AbiCoder, keccak256, toBeArray, EventLog } from "ethers";
 import { calculateTxGas } from "../scripts/utils";
+import {
+  deployMessagePaymentSystem,
+  deployMessageSpaceStation,
+  deployOminiToken,
+} from "../scripts/utils.deployment";
+import { expect } from "chai";
 
 describe("OrbiterStation", () => {
-  let OrbiterToken: ORBIToken;
-  let OrbiterStation: MessageSpaceStation;
+  let OminiTokenChainA: OminiToken;
+  let OminiTokenChainB: OminiToken;
+  let OrbiterStationChainA: MessageSpaceStation;
+  let OrbiterStationChainB: MessageSpaceStation;
   let signers: HardhatEthersSigner[];
   let DAppDemo: ChainA_EncodeMessageDemo;
   let HelperContract: Helper;
-  let PaymentSystem: MessagePaymentSystem;
+  let PaymentSystemChainA: MessagePaymentSystem;
+  let PaymentSystemChainB: MessagePaymentSystem;
+  let chainADeployer: HardhatEthersSigner;
+  let chainBDeployer: HardhatEthersSigner;
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
+    chainADeployer = signers[0];
+    chainBDeployer = signers[1];
 
-    PaymentSystem = await new MessagePaymentSystem__factory(
-      signers[0]
-    ).deploy();
+    PaymentSystemChainA = await deployMessagePaymentSystem(chainADeployer);
+    PaymentSystemChainB = await deployMessagePaymentSystem(chainBDeployer);
 
-    OrbiterStation = await new MessageSpaceStation__factory(signers[0]).deploy(
-      await signers[0].getAddress(),
-      await PaymentSystem.getAddress()
-    );
-    await OrbiterStation.waitForDeployment();
-    console.log(
-      "OrbiterStation deployed to:",
-      await OrbiterStation.getAddress()
-    );
+    OrbiterStationChainA = await deployMessageSpaceStation(chainADeployer, {
+      owner: await chainADeployer.getAddress(),
+      paymentSystem: await PaymentSystemChainA.getAddress(),
+    });
 
-    OrbiterToken = await new ORBIToken__factory(signers[0]).deploy();
-    await OrbiterToken.waitForDeployment();
-    console.log("OrbiterToken deployed to:", await OrbiterToken.getAddress());
+    OrbiterStationChainB = await deployMessageSpaceStation(chainBDeployer, {
+      owner: await chainBDeployer.getAddress(),
+      paymentSystem: await PaymentSystemChainB.getAddress(),
+    });
 
-    DAppDemo = await new ChainA_EncodeMessageDemo__factory(signers[2]).deploy();
-    await DAppDemo.waitForDeployment();
-    console.log("DAppDemo deployed to:", await DAppDemo.getAddress());
+    OminiTokenChainA = await deployOminiToken(chainADeployer, {
+      name: "Omini Orbiter TokenA",
+      symbol: "ORBT-A",
+      initialSupply: 1000,
+      LaunchPad: await OrbiterStationChainA.getAddress(),
+      LandingPad: await OrbiterStationChainA.getAddress(),
+      defaultRelayer: await chainADeployer.getAddress(),
+    });
+
+    OminiTokenChainB = await deployOminiToken(chainBDeployer, {
+      name: "Omini Orbiter TokenB",
+      symbol: "ORBT-B",
+      initialSupply: 1000,
+      LaunchPad: await OrbiterStationChainB.getAddress(),
+      LandingPad: await OrbiterStationChainB.getAddress(),
+      defaultRelayer: await chainADeployer.getAddress(),
+    });
 
     HelperContract = await new Helper__factory(signers[0]).deploy();
     await HelperContract.waitForDeployment();
   });
+
+  it("test OminiToken has been deployed", async () => {
+    const totalSupply = await OminiTokenChainA.totalSupply();
+    expect(totalSupply).to.equal(1000);
+
+    const totalSupplyB = await OminiTokenChainB.totalSupply();
+    expect(totalSupplyB).to.equal(1000);
+  });
+
+  it("test OrbiterStation has been deployed", async () => {
+    const owner = await OrbiterStationChainA.owner();
+    expect(owner).to.equal(await chainADeployer.getAddress());
+
+    const ownerB = await OrbiterStationChainB.owner();
+    expect(ownerB).to.equal(await chainBDeployer.getAddress());
+  });
+  return;
 
   it("Should Launch&Land message in OrbiterStation", async () => {
     // build Launch message

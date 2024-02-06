@@ -34,15 +34,18 @@ contract OminiToken is
     }
 
     constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 _initialSupply,
         address _LaunchPad,
         address _LandingPad,
         address _defaultRelayer
     )
-        ERC20("Omini Orbiter token", "OOT")
+        ERC20(_name, _symbol)
         OrbiterMessageEmitter(_LaunchPad)
         OrbiterMessageReceiver(_LandingPad)
     {
-        _mint(msg.sender, 10 ether);
+        _mint(msg.sender, _initialSupply);
         DEFAULT_RELAYER = _defaultRelayer;
     }
 
@@ -50,7 +53,7 @@ contract OminiToken is
         address toAddress,
         uint256 amount
     ) public override onlyLandingPad {
-        _mint(toAddress, amount * (1 ether));
+        _mint(toAddress, amount);
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -73,7 +76,7 @@ contract OminiToken is
         mint(toAddress, amount);
     }
 
-    function brideTransfer(
+    function bridgeTransfer(
         uint64 destChainId,
         address receiver,
         uint256 amount,
@@ -105,7 +108,7 @@ contract OminiToken is
     /// for Example, you can override the _tokenHandlingStrategy,
     /// instead of burning the token, you can transfer the token to a specific address.
     function _tokenHandlingStrategy(uint256 amount) internal virtual {
-        _burn(msg.sender, amount * 1 ether);
+        _burn(msg.sender, amount);
     }
 
     function _fetchSignature(
