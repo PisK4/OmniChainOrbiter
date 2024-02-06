@@ -8,6 +8,7 @@ import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
+import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
@@ -18,9 +19,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
     using MessageMonitorLib for uint24;
-    // using MessageHashUtils for bytes32;
+    using MessageTypeLib for bytes;
     using Utils for bytes;
-    // using ECDSA for bytes32;
 
     uint24 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
     uint24 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
@@ -198,7 +198,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                     block.chainid,
                     params.destChainld[i],
                     params.sender,
-                    params.relayer
+                    address(this)
                 );
 
             nonceLaunch.update(params.destChainld[i], params.sender);
@@ -215,7 +215,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                 block.chainid,
                 chainId,
                 params.sender,
-                params.relayer
+                address(this)
             );
         }
         nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
@@ -281,9 +281,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             nonceLanding.update(uint64(block.chainid), params[i].sender);
 
             bytes1 messageType = params[i].message.fetchMessageType();
-            if (messageType == MessageMonitorLib.AUTO_PILOT) {
-                params[i].message.excuteSignature();
-            } else if (messageType == MessageMonitorLib.MESSAGE_POST) {
+            if (messageType == MessageTypeLib.SDK_ACTIVATE_V1) {
+                _activateSDKSig(params[i].message);
+            } else if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
+                params[i].message.activateArbitrarySig();
+            } else if (messageType == MessageTypeLib.MESSAGE_POST) {
                 // TODO: handle mail message
             } else {
                 defaultLandingHandler.handleLandingParams(params[i]);

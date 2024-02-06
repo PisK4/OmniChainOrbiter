@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
+import {IOrbiterMessageReceiver} from "./interface/IOrbiterMessageReceiver.sol";
 import {Errors} from "./library/Errors.sol";
 import {Utils} from "./library/Utils.sol";
 
 library MessageMonitorLib {
     using MessageMonitorLib for address;
     using Utils for bytes;
-    bytes1 constant DEFAULT = 0x00;
-    bytes1 constant AUTO_PILOT = 0x01;
-    bytes1 constant MESSAGE_POST = 0x02;
-    bytes1 constant MAX_MODE = 0xFF;
+    // bytes1 constant DEFAULT = 0x00;
+    // bytes1 constant SDK_ACTIVATE_V1 = 0x01;
+    // bytes1 constant ARBITRARY_ACTIVATE = 0x02;
+    // bytes1 constant MESSAGE_POST = 0x03;
+    // bytes1 constant MAX_MODE = 0xFF;
 
     uint8 constant ENGINE_STOP = 0x01;
     uint8 constant ENGINE_START = 0x02;
@@ -45,36 +47,46 @@ library MessageMonitorLib {
         return self[chainId][sender] == nonceLaunch;
     }
 
-    function fetchMessageType(
-        bytes calldata message
-    ) internal pure returns (bytes1) {
-        bytes1 messageSlice = bytes1(message[0:1]);
-        return messageSlice;
-    }
+    // function fetchMessageType(
+    //     bytes calldata message
+    // ) internal pure returns (bytes1) {
+    //     bytes1 messageSlice = bytes1(message[0:1]);
+    //     return messageSlice;
+    // }
 
     function fetchMessageId(
         uint24 nonce,
         uint256 srcChainId,
         uint64 destChainId,
         address sender,
-        address relayer
+        address launchPad
     ) internal pure returns (bytes32) {
         return
-            abi.encode(nonce, srcChainId, destChainId, sender, relayer).hash();
+            abi
+                .encode(nonce, srcChainId, destChainId, sender, launchPad)
+                .hash();
     }
 
-    function excuteSignature(
+    function activateArbitrarySig(
         bytes calldata message
     ) internal returns (bool success, bytes memory returnData) {
-        // note: byte1 ~ byte33 is contract address
-        address contractAddr = address(
-            uint160(uint256(bytes32(message[1:33])))
-        );
-        // note: byte33 ~ byte35 is gasLimit
-        uint24 gasLimit = (uint24(bytes3(message[33:36])));
+        // // note: byte1 ~ byte33 is contract address
+        // address contractAddr = address(
+        //     uint160(uint256(bytes32(message[1:33])))
+        // );
+        // // note: byte33 ~ byte35 is gasLimit
+        // uint24 gasLimit = (uint24(bytes3(message[33:36])));
+
+        // /// note: byte36 ~ byteEnd is signature
+        // bytes memory signature = message[36:message.length];
+
+        (
+            address contractAddr,
+            uint24 gasLimit,
+            bytes memory signature
+        ) = sliceMessage(message);
+
         uint256 value = 0;
-        /// note: byte36 ~ byteEnd is signature
-        bytes memory signature = message[36:message.length];
 
         // excute signature on specific contract address
         (success, returnData) = contractAddr.safeCall(
@@ -83,6 +95,21 @@ library MessageMonitorLib {
             returnDataSize,
             signature
         );
+    }
+
+    function sliceMessage(
+        bytes calldata message
+    )
+        internal
+        pure
+        returns (address contractAddr, uint24 gasLimit, bytes memory signature)
+    {
+        // note: byte1 ~ byte33 is contract address
+        contractAddr = address(uint160(uint256(bytes32(message[1:33]))));
+        // note: byte33 ~ byte35 is gasLimit
+        gasLimit = (uint24(bytes3(message[33:36])));
+        /// note: byte36 ~ byteEnd is signature
+        signature = message[36:message.length];
     }
 
     function safeCall(
@@ -119,6 +146,26 @@ library MessageMonitorLib {
 }
 
 abstract contract MessageMonitor {
+    using MessageMonitorLib for bytes;
     mapping(uint64 => mapping(address => uint24)) public nonceLaunch;
     mapping(uint64 => mapping(address => uint24)) public nonceLanding;
+
+    function _activateSDKSig(bytes calldata message) internal virtual {
+        (
+            address contractAddr,
+            uint24 gasLimit,
+            bytes memory signature
+        ) = message.sliceMessage();
+        uint256 gasBefore = gasleft();
+        IOrbiterMessageReceiver(contractAddr).receiveMessage(
+            uint64(block.chainid),
+            nonceLaunch[uint64(block.chainid)][msg.sender],
+            msg.sender,
+            new bytes(0),
+            signature
+        );
+        if (gasBefore - gasleft() > gasLimit) {
+            revert Errors.OutOfGas();
+        }
+    }
 }
