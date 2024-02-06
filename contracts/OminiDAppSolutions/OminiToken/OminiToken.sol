@@ -64,6 +64,7 @@ contract OminiToken is
         bytes calldata additionalInfo,
         bytes calldata message
     ) internal override {
+        (srcChainId, nonce, sender, additionalInfo);
         // decode the message, args is for mint(address toAddress, uint256 amount)
         (address toAddress, uint256 amount) = abi.decode(
             message,
