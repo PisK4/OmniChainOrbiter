@@ -9,7 +9,7 @@ interface IOrbiterMessageEmitter {
     ) external view returns (uint256);
 
     function packetMessage(
-        uint8 mode,
+        bytes1 mode,
         uint24 gasLimit,
         address toAddress,
         bytes calldata message

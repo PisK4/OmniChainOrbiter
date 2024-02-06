@@ -8,8 +8,8 @@ abstract contract OrbiterMessageReceiver is IOrbiterMessageReceiver {
     error AccessDenied();
     IMessageSpaceStation public LandingPad;
 
-    constructor(address _LaunchPad) {
-        LandingPad = IMessageSpaceStation(_LaunchPad);
+    constructor(address _LandingPad) {
+        LandingPad = IMessageSpaceStation(_LandingPad);
     }
 
     /// @notice the standard function to receive the cross-chain message

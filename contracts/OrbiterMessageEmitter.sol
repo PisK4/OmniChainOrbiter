@@ -13,8 +13,8 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
         uint64 latestArrivalTime;
         address sender;
         address relayer;
-        uint8[] mode;
-        address[] toAddress;
+        bytes1[] mode;
+        address[] targetContarct;
         uint24[] gasLimit;
         bytes[] message;
         bytes[] aditionParams;
@@ -34,7 +34,7 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
             _message[i] = packetMessage(
                 _rawMessage.mode[i],
                 _rawMessage.gasLimit[i],
-                _rawMessage.toAddress[i],
+                _rawMessage.targetContarct[i],
                 _rawMessage.message[i]
             );
         }
@@ -50,7 +50,7 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
             )
         );
 
-        // packetMessage(mode, gasLimit, toAddress, message);
+        // packetMessage(mode, gasLimit, targetContarct, message);
     }
 
     function FetchProtocalFee(
@@ -62,21 +62,25 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
     /// @notice call this function to packet the message before sending it to the LandingPad contract
     /// @param mode the emmiter mode, check MessageTypeLib.sol for more details
     /// @param gasLimit the gas limit for executing the specific function on the target contract
-    /// @param toAddress the target contract address on the destination chain
+    /// @param targetContarct the target contract address on the destination chain
     /// @param message the message to be sent to the target contract
     /// @return the packed message
     function packetMessage(
-        uint8 mode,
+        bytes1 mode,
         uint24 gasLimit,
-        address toAddress,
+        address targetContarct,
         bytes memory message
     ) public pure virtual override returns (bytes memory) {
         bytes memory signature = abi.encodePacked(
             mode,
-            uint256(uint160(toAddress)),
+            uint256(uint160(targetContarct)),
             gasLimit,
             message
         );
         return signature;
     }
+
+    function _Launch(
+        rawMessage memory _rawMessage
+    ) internal virtual LaunchHook(_rawMessage) {}
 }

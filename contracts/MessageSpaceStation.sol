@@ -22,8 +22,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
-    uint24 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
-    uint24 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
+    uint64 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
+    uint64 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
     uint64 immutable UNIVERSE_CHAIN_ID = type(uint64).max - 1;
 
     /// @dev trusted sequencer, we will execute the message from this address
