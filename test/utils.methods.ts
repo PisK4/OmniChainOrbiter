@@ -43,6 +43,13 @@ export async function bridgeTransfer(
   messageId: string;
   params: IMessageSpaceStation.ParamsLaunchStruct;
 }> {
+  const bridgeTransferFee = await token.fetchOminiTokenTransferFee(
+    [args.destChainId],
+    [args.receiver],
+    [args.amount],
+    args.relayer
+  );
+
   const LaunchPad = new MessageSpaceStation__factory(from).attach(
     await token.LaunchPad()
   );
@@ -64,7 +71,7 @@ export async function bridgeTransfer(
       args.amount,
       args.relayer,
       {
-        value: ethers.parseEther("1"),
+        value: bridgeTransferFee * BigInt(2),
       }
     );
   let messageId: string = "";

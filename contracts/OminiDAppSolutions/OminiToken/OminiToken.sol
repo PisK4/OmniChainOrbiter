@@ -90,41 +90,16 @@ contract OminiToken is
         uint256 amount,
         address relayer
     ) external payable override {
-        uint64[] memory destChainIdArr = new uint64[](1);
-        destChainIdArr[0] = destChainId;
-
-        bytes[] memory message = new bytes[](1);
-        message[0] = _fetchSignature(receiver, amount);
-
-        address[] memory targetContract = new address[](1);
-        targetContract[0] = mirrorToken[destChainId];
-
-        activateRawMsg memory _activateRawMsg = activateRawMsg({
-            destChainld: destChainIdArr,
-            earlistArrivalTime: uint64(
-                block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
-            ),
-            latestArrivalTime: uint64(
-                block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
-            ),
-            sender: address(0),
-            relayer: relayer,
-            mode: new bytes1[](1),
-            targetContarct: targetContract,
-            gasLimit: new uint24[](1),
-            message: message,
-            aditionParams: new bytes[](0)
-        });
         _tokenHandlingStrategy(amount);
-        bridgeTransferHandler(_activateRawMsg);
+        bridgeTransferHandler(destChainId, receiver, amount, relayer);
     }
 
-    function fetchProtocolFee(
+    function fetchOminiTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount,
         address relayer
-    ) external pure override returns (uint256) {
+    ) external view override returns (uint256) {
         if (
             destChainId.length != receiver.length ||
             destChainId.length != amount.length
@@ -132,7 +107,63 @@ contract OminiToken is
             revert InvalidData();
         }
 
-        return 0;
+        (
+            bytes[] memory message,
+            address[] memory targetContract,
+            bytes1[] memory mode,
+            uint24[] memory gasLimit
+        ) = _allocMemory(destChainId, receiver, amount);
+
+        return
+            LaunchPad.FetchProtocolFee(
+                IMessageSpaceStation.paramsLaunch(
+                    destChainId,
+                    uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
+                    uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+                    msg.sender,
+                    relayer,
+                    new bytes[](0),
+                    PacketMessages(mode, gasLimit, targetContract, message)
+                )
+            );
+    }
+
+    function _allocMemory(
+        uint64[] calldata destChainId,
+        address[] calldata receiver,
+        uint256[] calldata amount
+    )
+        internal
+        view
+        returns (
+            bytes[] memory,
+            address[] memory,
+            bytes1[] memory,
+            uint24[] memory
+        )
+    {
+        uint256 dataLength = destChainId.length;
+        bytes[] memory message = new bytes[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            message[i] = _fetchSignature(receiver[i], amount[i]);
+        }
+
+        address[] memory targetContract = new address[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            targetContract[i] = mirrorToken[destChainId[i]];
+        }
+
+        bytes1[] memory mode = new bytes1[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            mode[i] = DEFAULT_MODE;
+        }
+
+        uint24[] memory gasLimit = new uint24[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            gasLimit[i] = MINIMAL_GAS_LIMIT;
+        }
+
+        return (message, targetContract, mode, gasLimit);
     }
 
     function setMirrorToken(
@@ -157,62 +188,35 @@ contract OminiToken is
     }
 
     function bridgeTransferHandler(
-        activateRawMsg memory _activateRawMsg
+        uint64 destChainId,
+        address receiver,
+        uint256 amount,
+        address relayer
     ) public virtual {
-        if (_activateRawMsg.relayer == address(0)) {
-            _activateRawMsg.relayer = DEFAULT_RELAYER;
-        }
+        uint64[] memory destChainIdArr = new uint64[](1);
+        destChainIdArr[0] = destChainId;
 
-        if (
-            _activateRawMsg.earlistArrivalTime <
-            block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
-        ) {
-            _activateRawMsg.earlistArrivalTime = uint64(
-                block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
-            );
-        }
+        bytes[] memory message = new bytes[](1);
+        message[0] = _fetchSignature(receiver, amount);
 
-        if (
-            _activateRawMsg.latestArrivalTime >
-            block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
-        ) {
-            _activateRawMsg.latestArrivalTime = uint64(
-                block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
-            );
-        }
+        address[] memory targetContract = new address[](1);
+        targetContract[0] = mirrorToken[destChainId];
 
-        if (_activateRawMsg.sender == address(0)) {
-            _activateRawMsg.sender = msg.sender;
-        }
+        bytes1[] memory mode = new bytes1[](1);
+        mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
 
-        for (uint256 i = 0; i < _activateRawMsg.gasLimit.length; i++) {
-            if (_activateRawMsg.gasLimit[i] == 0) {
-                _activateRawMsg.gasLimit[i] = MINIMAL_GAS_LIMIT;
-            } else if (_activateRawMsg.gasLimit[i] > MAXIMAL_GAS_LIMIT) {
-                _activateRawMsg.gasLimit[i] = MAXIMAL_GAS_LIMIT;
-            }
-        }
+        uint24[] memory gasLimit = new uint24[](1);
+        gasLimit[0] = MINIMAL_GAS_LIMIT;
 
-        // mode
-        for (uint256 i = 0; i < _activateRawMsg.mode.length; i++) {
-            if (_activateRawMsg.mode[i] == 0) {
-                _activateRawMsg.mode[i] = DEFAULT_MODE;
-            }
-        }
         emit2LaunchPad(
             IMessageSpaceStation.paramsLaunch(
-                _activateRawMsg.destChainld,
-                _activateRawMsg.earlistArrivalTime,
-                _activateRawMsg.latestArrivalTime,
-                _activateRawMsg.sender,
-                _activateRawMsg.relayer,
-                _activateRawMsg.aditionParams,
-                PacketMessages(
-                    _activateRawMsg.mode,
-                    _activateRawMsg.gasLimit,
-                    _activateRawMsg.targetContarct,
-                    _activateRawMsg.message
-                )
+                destChainIdArr,
+                uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
+                uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+                msg.sender,
+                relayer,
+                new bytes[](0),
+                PacketMessages(mode, gasLimit, targetContract, message)
             )
         );
     }

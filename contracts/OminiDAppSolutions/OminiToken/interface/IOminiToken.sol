@@ -11,7 +11,7 @@ interface IOminiToken {
         address relayer
     ) external payable;
 
-    function fetchProtocolFee(
+    function fetchOminiTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount,
