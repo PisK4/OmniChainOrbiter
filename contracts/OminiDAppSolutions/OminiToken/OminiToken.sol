@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOminiToken} from "./interface/IOminiToken.sol";
 
 import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
@@ -14,14 +14,18 @@ contract OminiToken is
     ERC20,
     OrbiterMessageEmitter,
     OrbiterMessageReceiver,
-    IOminiToken
+    IOminiToken,
+    Ownable
 {
-    uint64 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
-    uint64 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
+    uint64 immutable OMINI_MINIMAL_ARRIVAL_TIME = 3 minutes;
+    uint64 immutable OMINI_MAXIMAL_ARRIVAL_TIME = 30 days;
     uint24 immutable MINIMAL_GAS_LIMIT = 100000;
     uint24 immutable MAXIMAL_GAS_LIMIT = 500000;
-    bytes1 immutable DEFAULT_MODE = MessageTypeLib.SDK_ACTIVATE_V1;
+    bytes1 immutable DEFAULT_MODE = MessageTypeLib.ARBITRARY_ACTIVATE;
     address immutable DEFAULT_RELAYER;
+
+    // mirror OmniToken : mirrorToken[chainId] = address
+    mapping(uint64 => address) public mirrorToken;
 
     modifier onlyLandingPad() {
         if (msg.sender != address(LandingPad)) revert AccessDenied();
@@ -44,6 +48,7 @@ contract OminiToken is
         ERC20(_name, _symbol)
         OrbiterMessageEmitter(_LaunchPad)
         OrbiterMessageReceiver(_LandingPad)
+        Ownable(msg.sender)
     {
         _mint(msg.sender, _initialSupply);
         DEFAULT_RELAYER = _defaultRelayer;
@@ -88,20 +93,34 @@ contract OminiToken is
         bytes[] memory message = new bytes[](1);
         message[0] = _fetchSignature(receiver, amount);
 
+        address[] memory targetContract = new address[](1);
+        targetContract[0] = mirrorToken[destChainId];
+
         rawMessage memory _rawMessage = rawMessage({
             destChainld: destChainIdArr,
-            earlistArrivalTime: uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
-            latestArrivalTime: uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
+            earlistArrivalTime: uint64(
+                block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
+            ),
+            latestArrivalTime: uint64(
+                block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
+            ),
             sender: address(0),
             relayer: relayer,
             mode: new bytes1[](1),
-            targetContarct: new address[](1),
+            targetContarct: targetContract,
             gasLimit: new uint24[](1),
             message: message,
             aditionParams: new bytes[](0)
         });
         _Launch(_rawMessage);
         _tokenHandlingStrategy(amount);
+    }
+
+    function setMirrorToken(
+        uint64 chainId,
+        address tokenAddress
+    ) external onlyOwner {
+        mirrorToken[chainId] = tokenAddress;
     }
 
     /// @dev bellow are the virtual functions, feel free to override them in your own contract.
@@ -127,19 +146,19 @@ contract OminiToken is
 
         if (
             _rawMessage.earlistArrivalTime <
-            block.timestamp + MINIMAL_ARRIVAL_TIME
+            block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
         ) {
             _rawMessage.earlistArrivalTime = uint64(
-                block.timestamp + MINIMAL_ARRIVAL_TIME
+                block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
             );
         }
 
         if (
             _rawMessage.latestArrivalTime >
-            block.timestamp + MAXIMAL_ARRIVAL_TIME
+            block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
         ) {
             _rawMessage.latestArrivalTime = uint64(
-                block.timestamp + MAXIMAL_ARRIVAL_TIME
+                block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
             );
         }
 

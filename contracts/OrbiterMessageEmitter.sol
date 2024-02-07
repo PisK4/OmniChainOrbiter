@@ -80,6 +80,8 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
         return signature;
     }
 
+    /// @dev Even if you rewrite the function, the launchhook still needs to be added to the function.
+    /// @param _rawMessage the raw message to be sent to the LandingPad contract
     function _Launch(
         rawMessage memory _rawMessage
     ) internal virtual LaunchHook(_rawMessage) {}

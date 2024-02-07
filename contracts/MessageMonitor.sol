@@ -42,13 +42,6 @@ library MessageMonitorLib {
         return self[chainId][sender] == nonceLaunch;
     }
 
-    // function fetchMessageType(
-    //     bytes calldata message
-    // ) internal pure returns (bytes1) {
-    //     bytes1 messageSlice = bytes1(message[0:1]);
-    //     return messageSlice;
-    // }
-
     function fetchMessageId(
         uint24 nonce,
         uint256 srcChainId,
@@ -60,6 +53,13 @@ library MessageMonitorLib {
             abi
                 .encode(nonce, srcChainId, destChainId, sender, launchPad)
                 .hash();
+    }
+
+    function allocMessageId(
+        uint256 length
+    ) internal pure returns (bytes32[] memory) {
+        bytes32[] memory messageIds = new bytes32[](length);
+        return messageIds;
     }
 
     function activateArbitrarySig(

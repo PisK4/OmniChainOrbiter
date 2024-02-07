@@ -61,3 +61,11 @@ export const calculateTxGas = async (
     // transactionfee,
   };
 };
+
+export async function getCurrentTime() {
+  const block = await ethers.provider.getBlock("latest");
+  if (block !== null) {
+    return block.timestamp;
+  }
+  return 0;
+}

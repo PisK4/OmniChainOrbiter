@@ -12,11 +12,14 @@ import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
+import "hardhat/console.sol";
+
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
 contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
+    using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
     using MessageMonitorLib for uint24;
     using MessageTypeLib for bytes;
@@ -147,51 +150,60 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @dev Explain to a developer any extra details
     function _LaunchOne2One(
         paramsLaunch calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            params.message.length
-        );
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.message.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                params.message.length
+            );
     }
 
     /// @notice same message will be sent to multiple chains
     /// @dev Explain to a developer any extra details
     function _LaunchOne2Many(
         paramsLaunch calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            params.destChainld.length
-        );
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.destChainld.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                params.destChainld.length
+            );
     }
 
     /// @notice many message will be sent to one chain
     /// @dev Explain to a developer any extra details
     function _LaunchMany2One(
         paramsLaunch calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            params.destChainld[0],
-            params.message.length
-        );
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.message.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                params.destChainld[0],
+                params.message.length
+            );
     }
 
     /// @notice the message will be sent to all chains
     function _Lanch2Universe(
         paramsLaunch calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            UNIVERSE_CHAIN_ID,
-            params.message.length
-        );
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.message.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                UNIVERSE_CHAIN_ID,
+                params.message.length
+            );
     }
 
     function _fetchMessageIdThenUpdateNonce(
         paramsLaunch calldata params,
         uint256 loopMax
-    ) private returns (bytes32[] memory messageId) {
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLanding[params.destChainld[i]][params.sender]
                 .fetchMessageId(
@@ -200,16 +212,17 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                     params.sender,
                     address(this)
                 );
-
             nonceLaunch.update(params.destChainld[i], params.sender);
         }
+        return messageId;
     }
 
     function _fetchMessageIdThenUpdateNonce(
         paramsLaunch calldata params,
         uint64 chainId,
         uint256 loopMax
-    ) private returns (bytes32[] memory messageId) {
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLanding[chainId][params.sender].fetchMessageId(
                 block.chainid,
@@ -219,6 +232,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             );
         }
         nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
+        return messageId;
     }
 
     /// @notice batch landing message to the Station

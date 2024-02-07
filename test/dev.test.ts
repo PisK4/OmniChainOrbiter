@@ -1,4 +1,5 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { mine, mineUpTo } from "@nomicfoundation/hardhat-network-helpers";
 import {
   OminiToken,
   OminiToken__factory,
@@ -13,8 +14,15 @@ import {
   MessagePaymentSystem__factory,
 } from "../typechain-types";
 import { ethers } from "hardhat";
-import { BytesLike, AbiCoder, keccak256, toBeArray, EventLog } from "ethers";
-import { calculateTxGas } from "../scripts/utils";
+import {
+  BytesLike,
+  AbiCoder,
+  keccak256,
+  toBeArray,
+  EventLog,
+  BigNumberish,
+} from "ethers";
+import { calculateTxGas, getCurrentTime, mineXTimes } from "../scripts/utils";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
@@ -34,11 +42,15 @@ describe("OrbiterStation", () => {
   let PaymentSystemChainB: MessagePaymentSystem;
   let chainADeployer: HardhatEthersSigner;
   let chainBDeployer: HardhatEthersSigner;
+  let chainAReceiver: HardhatEthersSigner;
+  let chainBReceiver: HardhatEthersSigner;
 
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     chainADeployer = signers[0];
     chainBDeployer = signers[1];
+    chainAReceiver = signers[2];
+    chainBReceiver = signers[3];
 
     PaymentSystemChainA = await deployMessagePaymentSystem(chainADeployer);
     PaymentSystemChainB = await deployMessagePaymentSystem(chainBDeployer);
@@ -90,6 +102,70 @@ describe("OrbiterStation", () => {
     const ownerB = await OrbiterStationChainB.owner();
     expect(ownerB).to.equal(await chainBDeployer.getAddress());
   });
+
+  it("bridge OminiToken from ChainA to ChainB", async () => {
+    await OminiTokenChainA.setMirrorToken(
+      2,
+      await OminiTokenChainB.getAddress()
+    );
+    await OminiTokenChainB.setMirrorToken(
+      1,
+      await OminiTokenChainA.getAddress()
+    );
+
+    const { messageId, params } = await bridgeTransfer(
+      OminiTokenChainA,
+      chainADeployer,
+      {
+        destChainId: 2,
+        receiver: await chainBReceiver.getAddress(),
+        amount: 100,
+        relayer: await chainADeployer.getAddress(),
+      }
+    );
+
+    const LandingParams: IMessageSpaceStation.ParamsLandingStruct = {
+      srcChainld: 1,
+      nonceLandingCurrent: 0,
+      sender: params.sender,
+      value: 0,
+      messgeId: messageId,
+      message: params.message[0],
+    };
+
+    await mine(600);
+
+    await relayerMessage(OrbiterStationChainB, chainBDeployer, {
+      mptRoot: ethers.keccak256(ethers.randomBytes(32)) as BytesLike,
+      aggregatedEarlistArrivalTime: params.earlistArrivalTime,
+      aggregatedLatestArrivalTime: params.latestArrivalTime,
+      params: [LandingParams],
+    });
+
+    const chainADeployerBalance = await OminiTokenChainA.balanceOf(
+      await chainADeployer.getAddress()
+    );
+
+    const chainATotoalSupply = await OminiTokenChainA.totalSupply();
+
+    const chainBReceiverBalance = await OminiTokenChainB.balanceOf(
+      await chainBReceiver.getAddress()
+    );
+
+    const chainBTotoalSupply = await OminiTokenChainB.totalSupply();
+
+    console.log(
+      "chainADeployerBalance:",
+      chainADeployerBalance,
+      "chainBReceiverBalance:",
+      chainBReceiverBalance,
+      "chainATotoalSupply:",
+      chainATotoalSupply,
+      "chainBTotoalSupply:",
+      chainBTotoalSupply
+    );
+  });
+
   return;
 
   it("Should Launch&Land message in OrbiterStation", async () => {
@@ -205,3 +281,83 @@ describe("OrbiterStation", () => {
     );
   });
 });
+
+async function bridgeTransfer(
+  token: OminiToken,
+  from: HardhatEthersSigner,
+  args: {
+    destChainId: number;
+    receiver: string;
+    amount: number;
+    relayer: string;
+  }
+): Promise<{
+  messageId: string;
+  params: IMessageSpaceStation.ParamsLaunchStruct;
+}> {
+  const LaunchPadAddress = await token.LaunchPad();
+  console.log("LaunchPadAddress:", LaunchPadAddress);
+
+  const LaunchPad = new MessageSpaceStation__factory(from).attach(
+    LaunchPadAddress
+  );
+
+  const successfulLaunchPromise = new Promise((resolve) => {
+    LaunchPad.on(
+      "SuccessfulLaunch",
+      (messageId: string, params: IMessageSpaceStation.ParamsLaunchStruct) => {
+        resolve({ messageId, params });
+      }
+    );
+  });
+
+  const tx = await token
+    .connect(from)
+    .bridgeTransfer(args.destChainId, args.receiver, args.amount, args.relayer);
+
+  let messageId: string = "";
+  let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
+
+  successfulLaunchPromise.then((result: any) => {
+    messageId = result.messageId.hash;
+    params = result.params;
+  });
+
+  const receipt = await tx.wait();
+  await calculateTxGas(tx, "bridgeTransfer", true);
+  console.log(
+    "from:",
+    await from.getAddress(),
+    "to:",
+    args.receiver,
+    "amount:",
+    args.amount
+  );
+
+  return { messageId, params };
+}
+
+async function relayerMessage(
+  OrbiterStation: MessageSpaceStation,
+  relayer: HardhatEthersSigner,
+  args: {
+    mptRoot: BytesLike;
+    aggregatedEarlistArrivalTime: BigNumberish;
+    aggregatedLatestArrivalTime: BigNumberish;
+    params: IMessageSpaceStation.ParamsLandingStruct[];
+  }
+) {
+  const landInstance = OrbiterStation.connect(relayer).getFunction(
+    "Landing(bytes32,uint64,uint64,(uint64,uint24,address,uint256,bytes32,bytes)[])"
+  );
+
+  const tx = await landInstance(
+    args.mptRoot,
+    args.aggregatedEarlistArrivalTime,
+    args.aggregatedLatestArrivalTime,
+    args.params
+  );
+
+  const receipt = await tx.wait();
+  await calculateTxGas(tx, "relayerMessage", true);
+}
