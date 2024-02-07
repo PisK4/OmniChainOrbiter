@@ -53,15 +53,15 @@ export async function bridgeTransfer(
   const LaunchPad = new MessageSpaceStation__factory(from).attach(
     await token.LaunchPad()
   );
-
-  const successfulLaunchPromise = new Promise((resolve) => {
-    LaunchPad.on(
-      "SuccessfulLaunch",
-      (messageId: string, params: IMessageSpaceStation.ParamsLaunchStruct) => {
-        resolve({ messageId, params });
-      }
-    );
-  });
+  let messageId: string = "";
+  let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
+  LaunchPad.on(
+    "SuccessfulLaunch",
+    (_messageId: any, _params: IMessageSpaceStation.ParamsLaunchStruct) => {
+      messageId = _messageId.hash;
+      params = _params;
+    }
+  );
 
   const tx = await token
     .connect(from)
@@ -74,15 +74,12 @@ export async function bridgeTransfer(
         value: bridgeTransferFee * BigInt(2),
       }
     );
-  let messageId: string = "";
-  let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
-
-  successfulLaunchPromise.then((result: any) => {
-    messageId = result.messageId.hash;
-    params = result.params;
-  });
-
   const receipt = await tx.wait();
+
+  if (!messageId) {
+    throw new Error("Failed to get messageId and params");
+  }
+
   let gasMonitor: GasMonitor[] = [];
   gasMonitor.push(await calculateTxGas(tx, "bridgeTransfer", true));
   console.table(gasMonitor);
