@@ -94,78 +94,6 @@ contract OminiToken is
         bridgeTransferHandler(destChainId, receiver, amount, relayer);
     }
 
-    function fetchOminiTokenTransferFee(
-        uint64[] calldata destChainId,
-        address[] calldata receiver,
-        uint256[] calldata amount,
-        address relayer
-    ) external view override returns (uint256) {
-        if (
-            destChainId.length != receiver.length ||
-            destChainId.length != amount.length
-        ) {
-            revert InvalidData();
-        }
-
-        (
-            bytes[] memory message,
-            address[] memory targetContract,
-            bytes1[] memory mode,
-            uint24[] memory gasLimit
-        ) = _allocMemory(destChainId, receiver, amount);
-
-        return
-            LaunchPad.FetchProtocolFee(
-                IMessageSpaceStation.paramsLaunch(
-                    destChainId,
-                    uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
-                    uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
-                    msg.sender,
-                    relayer,
-                    new bytes[](0),
-                    PacketMessages(mode, gasLimit, targetContract, message)
-                )
-            );
-    }
-
-    function _allocMemory(
-        uint64[] calldata destChainId,
-        address[] calldata receiver,
-        uint256[] calldata amount
-    )
-        internal
-        view
-        returns (
-            bytes[] memory,
-            address[] memory,
-            bytes1[] memory,
-            uint24[] memory
-        )
-    {
-        uint256 dataLength = destChainId.length;
-        bytes[] memory message = new bytes[](dataLength);
-        for (uint256 i = 0; i < dataLength; i++) {
-            message[i] = _fetchSignature(receiver[i], amount[i]);
-        }
-
-        address[] memory targetContract = new address[](dataLength);
-        for (uint256 i = 0; i < dataLength; i++) {
-            targetContract[i] = mirrorToken[destChainId[i]];
-        }
-
-        bytes1[] memory mode = new bytes1[](dataLength);
-        for (uint256 i = 0; i < dataLength; i++) {
-            mode[i] = DEFAULT_MODE;
-        }
-
-        uint24[] memory gasLimit = new uint24[](dataLength);
-        for (uint256 i = 0; i < dataLength; i++) {
-            gasLimit[i] = MINIMAL_GAS_LIMIT;
-        }
-
-        return (message, targetContract, mode, gasLimit);
-    }
-
     function setMirrorToken(
         uint64 chainId,
         address tokenAddress
@@ -219,5 +147,81 @@ contract OminiToken is
                 PacketMessages(mode, gasLimit, targetContract, message)
             )
         );
+    }
+
+    /// @notice before you bridgeTransfer, please call this function to get the bridge fee
+    /// @dev if your token would charge a extra fee, you can override this function
+    /// @return the fee of the bridge transfer
+    function fetchOminiTokenTransferFee(
+        uint64[] calldata destChainId,
+        address[] calldata receiver,
+        uint256[] calldata amount,
+        address relayer
+    ) external view virtual override returns (uint256) {
+        if (
+            destChainId.length != receiver.length ||
+            destChainId.length != amount.length
+        ) {
+            revert InvalidData();
+        }
+
+        (
+            bytes[] memory message,
+            address[] memory targetContract,
+            bytes1[] memory mode,
+            uint24[] memory gasLimit
+        ) = _allocMemory(destChainId, receiver, amount);
+
+        return
+            LaunchPad.FetchProtocolFee(
+                IMessageSpaceStation.paramsLaunch(
+                    destChainId,
+                    uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
+                    uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+                    msg.sender,
+                    relayer,
+                    new bytes[](0),
+                    PacketMessages(mode, gasLimit, targetContract, message)
+                )
+            );
+    }
+
+    function _allocMemory(
+        uint64[] calldata destChainId,
+        address[] calldata receiver,
+        uint256[] calldata amount
+    )
+        internal
+        view
+        virtual
+        returns (
+            bytes[] memory,
+            address[] memory,
+            bytes1[] memory,
+            uint24[] memory
+        )
+    {
+        uint256 dataLength = destChainId.length;
+        bytes[] memory message = new bytes[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            message[i] = _fetchSignature(receiver[i], amount[i]);
+        }
+
+        address[] memory targetContract = new address[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            targetContract[i] = mirrorToken[destChainId[i]];
+        }
+
+        bytes1[] memory mode = new bytes1[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            mode[i] = DEFAULT_MODE;
+        }
+
+        uint24[] memory gasLimit = new uint24[](dataLength);
+        for (uint256 i = 0; i < dataLength; i++) {
+            gasLimit[i] = MINIMAL_GAS_LIMIT;
+        }
+
+        return (message, targetContract, mode, gasLimit);
     }
 }
