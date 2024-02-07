@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
+import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
 
 interface IMessageSpaceStation {
     struct paramsLaunch {
@@ -60,8 +61,12 @@ interface IMessageSpaceStation {
 
     function SetPaymentSystem(address paymentSystemAddress) external;
 
-    function FetchProtocalFee(
+    function FetchProtocolFee(
         paramsLaunch calldata params
+    ) external view returns (uint256);
+
+    function FetchProtocolFee(
+        IOrbiterMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 
     function configTrustedSequencer(

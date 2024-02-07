@@ -6,11 +6,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
+import {IOrbiterMessageEmitter} from "./interface/IOrbiterMessageEmitter.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
+
+import "hardhat/console.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
@@ -103,7 +106,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         engineCheck
         returns (bytes32[] memory messageId)
     {
-        if (msg.value != FetchProtocalFee(params)) {
+        if (msg.value < FetchProtocolFee(params)) {
+            console.log("msg.value: %s", msg.value);
+            console.log(
+                "FetchProtocolFee(params): %s",
+                FetchProtocolFee(params)
+            );
             revert Errors.ValueNotMatched();
         }
 
@@ -148,13 +156,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @dev Explain to a developer any extra details
     function _LaunchOne2One(
         paramsLaunch calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.message.length);
-        return
-            messageId = _fetchMessageIdThenUpdateNonce(
-                params,
-                params.message.length
-            );
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonce(
+            params,
+            params.message.length
+        );
     }
 
     /// @notice same message will be sent to multiple chains
@@ -278,7 +284,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         mptRoots = mptRoot;
 
         for (uint256 i = 0; i < params.length; i++) {
-            if (params[i].value != msg.value) {
+            if (params[i].value < msg.value) {
                 revert Errors.ValueNotMatched();
             }
             if (
@@ -293,9 +299,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             nonceLanding.update(uint64(block.chainid), params[i].sender);
 
             bytes1 messageType = params[i].message.fetchMessageType();
-            if (messageType == MessageTypeLib.SDK_ACTIVATE_V1) {
-                _activateSDKSig(params[i].message);
-            } else if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
+            if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
                 params[i].message.activateArbitrarySig();
             } else if (messageType == MessageTypeLib.MESSAGE_POST) {
                 // TODO: handle mail message
@@ -338,10 +342,16 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     ///      this method will return the protocol fee that the message need to pay, longer message will pay more
     /// @param params the cross-chain needed params struct
     /// @return protocol fee, the unit is wei
-    function FetchProtocalFee(
+    function FetchProtocolFee(
         paramsLaunch calldata params
     ) public view override returns (uint256) {
-        return paymentSystem.fetchProtocalFee_(params);
+        return paymentSystem.fetchProtocolFee_(params);
+    }
+
+    function FetchProtocolFee(
+        IOrbiterMessageEmitter.activateRawMsg calldata params
+    ) public view override returns (uint256) {
+        return paymentSystem.fetchProtocolFee_(params);
     }
 
     function configTrustedSequencer(

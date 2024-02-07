@@ -13,19 +13,19 @@ export function callDataCost(data: string): bigint {
       .reduce((sum, x) => sum + x)
   );
 }
+export interface GasMonitor {
+  action?: string;
+  totoalGas: bigint;
+  inputDataGas: bigint;
+  excutionGas: bigint;
+}
 
 export const calculateTxGas = async (
   tx: ContractTransactionResponse,
   title?: string,
   getTransactionfee = false,
   index?: number
-) => {
-  interface GasMonitor {
-    action?: string;
-    totoalGas: bigint;
-    inputDataGas: bigint;
-    excutionGas: bigint;
-  }
+): Promise<GasMonitor> => {
   let gasMonitor: GasMonitor = {} as GasMonitor;
 
   const { maxPriorityFeePerGas } = await ethers.provider.getFeeData();
@@ -42,12 +42,7 @@ export const calculateTxGas = async (
     inputDataGas: inputGasUsed,
     excutionGas: gasUsed - inputGasUsed - 21000n,
   };
-  console.table(gasMonitor);
-  return {
-    gasUsed,
-    gasPrice,
-    // transactionfee,
-  };
+  return gasMonitor;
 };
 
 export async function getCurrentTime() {

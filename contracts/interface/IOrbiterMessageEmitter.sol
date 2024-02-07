@@ -4,14 +4,31 @@ pragma solidity ^0.8.23;
 import "./IMessageSpaceStation.sol";
 
 interface IOrbiterMessageEmitter {
-    function FetchProtocalFee(
-        IMessageSpaceStation.paramsLaunch calldata params
-    ) external view returns (uint256);
+    struct activateRawMsg {
+        uint64[] destChainld;
+        uint64 earlistArrivalTime;
+        uint64 latestArrivalTime;
+        address sender;
+        address relayer;
+        bytes1[] mode;
+        address[] targetContarct;
+        uint24[] gasLimit;
+        bytes[] message;
+        bytes[] aditionParams;
+    }
 
-    function packetMessage(
-        bytes1 mode,
-        uint24 gasLimit,
-        address toAddress,
-        bytes calldata message
-    ) external view returns (bytes memory);
+    function emit2LaunchPad(
+        IMessageSpaceStation.paramsLaunch calldata params
+    ) external payable;
+
+    function converActivateRawMsg(
+        activateRawMsg memory rawMsg
+    ) external view returns (IMessageSpaceStation.paramsLaunch memory);
+
+    function PacketMessages(
+        bytes1[] memory mode,
+        uint24[] memory gasLimit,
+        address[] memory targetContarct,
+        bytes[] memory message
+    ) external view returns (bytes[] memory);
 }

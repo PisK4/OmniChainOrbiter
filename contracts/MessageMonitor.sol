@@ -65,16 +65,6 @@ library MessageMonitorLib {
     function activateArbitrarySig(
         bytes calldata message
     ) internal returns (bool success, bytes memory returnData) {
-        // // note: byte1 ~ byte33 is contract address
-        // address contractAddr = address(
-        //     uint160(uint256(bytes32(message[1:33])))
-        // );
-        // // note: byte33 ~ byte35 is gasLimit
-        // uint24 gasLimit = (uint24(bytes3(message[33:36])));
-
-        // /// note: byte36 ~ byteEnd is signature
-        // bytes memory signature = message[36:message.length];
-
         (
             address contractAddr,
             uint24 gasLimit,

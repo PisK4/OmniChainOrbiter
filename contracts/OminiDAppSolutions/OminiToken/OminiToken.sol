@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOminiToken} from "./interface/IOminiToken.sol";
+import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 
 import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
 
@@ -17,6 +18,8 @@ contract OminiToken is
     IOminiToken,
     Ownable
 {
+    error InvalidData();
+
     uint64 immutable OMINI_MINIMAL_ARRIVAL_TIME = 3 minutes;
     uint64 immutable OMINI_MAXIMAL_ARRIVAL_TIME = 30 days;
     uint24 immutable MINIMAL_GAS_LIMIT = 100000;
@@ -86,7 +89,7 @@ contract OminiToken is
         address receiver,
         uint256 amount,
         address relayer
-    ) external {
+    ) external payable override {
         uint64[] memory destChainIdArr = new uint64[](1);
         destChainIdArr[0] = destChainId;
 
@@ -96,7 +99,7 @@ contract OminiToken is
         address[] memory targetContract = new address[](1);
         targetContract[0] = mirrorToken[destChainId];
 
-        rawMessage memory _rawMessage = rawMessage({
+        activateRawMsg memory _activateRawMsg = activateRawMsg({
             destChainld: destChainIdArr,
             earlistArrivalTime: uint64(
                 block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
@@ -112,8 +115,24 @@ contract OminiToken is
             message: message,
             aditionParams: new bytes[](0)
         });
-        _Launch(_rawMessage);
         _tokenHandlingStrategy(amount);
+        bridgeTransferHandler(_activateRawMsg);
+    }
+
+    function fetchProtocolFee(
+        uint64[] calldata destChainId,
+        address[] calldata receiver,
+        uint256[] calldata amount,
+        address relayer
+    ) external pure override returns (uint256) {
+        if (
+            destChainId.length != receiver.length ||
+            destChainId.length != amount.length
+        ) {
+            revert InvalidData();
+        }
+
+        return 0;
     }
 
     function setMirrorToken(
@@ -137,48 +156,64 @@ contract OminiToken is
         signature = abi.encodeCall(IOminiToken.mint, (toAddress, amount));
     }
 
-    function _Launch(
-        rawMessage memory _rawMessage
-    ) internal override LaunchHook(_rawMessage) {
-        if (_rawMessage.relayer == address(0)) {
-            _rawMessage.relayer = DEFAULT_RELAYER;
+    function bridgeTransferHandler(
+        activateRawMsg memory _activateRawMsg
+    ) public virtual {
+        if (_activateRawMsg.relayer == address(0)) {
+            _activateRawMsg.relayer = DEFAULT_RELAYER;
         }
 
         if (
-            _rawMessage.earlistArrivalTime <
+            _activateRawMsg.earlistArrivalTime <
             block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
         ) {
-            _rawMessage.earlistArrivalTime = uint64(
+            _activateRawMsg.earlistArrivalTime = uint64(
                 block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME
             );
         }
 
         if (
-            _rawMessage.latestArrivalTime >
+            _activateRawMsg.latestArrivalTime >
             block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
         ) {
-            _rawMessage.latestArrivalTime = uint64(
+            _activateRawMsg.latestArrivalTime = uint64(
                 block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME
             );
         }
 
-        if (_rawMessage.sender == address(0)) {
-            _rawMessage.sender = msg.sender;
+        if (_activateRawMsg.sender == address(0)) {
+            _activateRawMsg.sender = msg.sender;
         }
 
-        for (uint256 i = 0; i < _rawMessage.gasLimit.length; i++) {
-            if (_rawMessage.gasLimit[i] == 0) {
-                _rawMessage.gasLimit[i] = MINIMAL_GAS_LIMIT;
-            } else if (_rawMessage.gasLimit[i] > MAXIMAL_GAS_LIMIT) {
-                _rawMessage.gasLimit[i] = MAXIMAL_GAS_LIMIT;
+        for (uint256 i = 0; i < _activateRawMsg.gasLimit.length; i++) {
+            if (_activateRawMsg.gasLimit[i] == 0) {
+                _activateRawMsg.gasLimit[i] = MINIMAL_GAS_LIMIT;
+            } else if (_activateRawMsg.gasLimit[i] > MAXIMAL_GAS_LIMIT) {
+                _activateRawMsg.gasLimit[i] = MAXIMAL_GAS_LIMIT;
             }
         }
 
         // mode
-        for (uint256 i = 0; i < _rawMessage.mode.length; i++) {
-            if (_rawMessage.mode[i] == 0) {
-                _rawMessage.mode[i] = DEFAULT_MODE;
+        for (uint256 i = 0; i < _activateRawMsg.mode.length; i++) {
+            if (_activateRawMsg.mode[i] == 0) {
+                _activateRawMsg.mode[i] = DEFAULT_MODE;
             }
         }
+        emit2LaunchPad(
+            IMessageSpaceStation.paramsLaunch(
+                _activateRawMsg.destChainld,
+                _activateRawMsg.earlistArrivalTime,
+                _activateRawMsg.latestArrivalTime,
+                _activateRawMsg.sender,
+                _activateRawMsg.relayer,
+                _activateRawMsg.aditionParams,
+                PacketMessages(
+                    _activateRawMsg.mode,
+                    _activateRawMsg.gasLimit,
+                    _activateRawMsg.targetContarct,
+                    _activateRawMsg.message
+                )
+            )
+        );
     }
 }

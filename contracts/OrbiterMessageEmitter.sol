@@ -7,56 +7,36 @@ import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
 abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
-    struct rawMessage {
-        uint64[] destChainld;
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        address sender;
-        address relayer;
-        bytes1[] mode;
-        address[] targetContarct;
-        uint24[] gasLimit;
-        bytes[] message;
-        bytes[] aditionParams;
-    }
     IMessageSpaceStation public LaunchPad;
 
     constructor(address _LaunchPad) {
         LaunchPad = IMessageSpaceStation(_LaunchPad);
     }
 
-    /// @dev put this modifier on the function that you want to emit the cross-chain message
-    /// @param _rawMessage the raw message to be sent to the LandingPad contract
-    modifier LaunchHook(rawMessage memory _rawMessage) {
-        _;
-        bytes[] memory _message = new bytes[](_rawMessage.message.length);
-        for (uint256 i = 0; i < _rawMessage.message.length; i++) {
-            _message[i] = packetMessage(
-                _rawMessage.mode[i],
-                _rawMessage.gasLimit[i],
-                _rawMessage.targetContarct[i],
-                _rawMessage.message[i]
-            );
-        }
-        LaunchPad.Launch(
-            IMessageSpaceStation.paramsLaunch(
-                _rawMessage.destChainld,
-                _rawMessage.earlistArrivalTime,
-                _rawMessage.latestArrivalTime,
-                _rawMessage.sender,
-                _rawMessage.relayer,
-                _rawMessage.aditionParams,
-                _message
-            )
-        );
-
-        // packetMessage(mode, gasLimit, targetContarct, message);
+    function emit2LaunchPad(
+        IMessageSpaceStation.paramsLaunch memory params
+    ) public payable override {
+        LaunchPad.Launch{value: msg.value}(params);
     }
 
-    function FetchProtocalFee(
-        IMessageSpaceStation.paramsLaunch calldata params
-    ) external view override returns (uint256) {
-        return LaunchPad.FetchProtocalFee(params);
+    function converActivateRawMsg(
+        activateRawMsg memory rawMsg
+    ) public pure override returns (IMessageSpaceStation.paramsLaunch memory) {
+        return
+            IMessageSpaceStation.paramsLaunch(
+                rawMsg.destChainld,
+                rawMsg.earlistArrivalTime,
+                rawMsg.latestArrivalTime,
+                rawMsg.sender,
+                rawMsg.relayer,
+                rawMsg.aditionParams,
+                PacketMessages(
+                    rawMsg.mode,
+                    rawMsg.gasLimit,
+                    rawMsg.targetContarct,
+                    rawMsg.message
+                )
+            );
     }
 
     /// @notice call this function to packet the message before sending it to the LandingPad contract
@@ -65,24 +45,23 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
     /// @param targetContarct the target contract address on the destination chain
     /// @param message the message to be sent to the target contract
     /// @return the packed message
-    function packetMessage(
-        bytes1 mode,
-        uint24 gasLimit,
-        address targetContarct,
-        bytes memory message
-    ) public pure virtual override returns (bytes memory) {
-        bytes memory signature = abi.encodePacked(
-            mode,
-            uint256(uint160(targetContarct)),
-            gasLimit,
-            message
-        );
-        return signature;
-    }
+    function PacketMessages(
+        bytes1[] memory mode,
+        uint24[] memory gasLimit,
+        address[] memory targetContarct,
+        bytes[] memory message
+    ) public pure virtual override returns (bytes[] memory) {
+        bytes[] memory signatures = new bytes[](message.length);
 
-    /// @dev Even if you rewrite the function, the launchhook still needs to be added to the function.
-    /// @param _rawMessage the raw message to be sent to the LandingPad contract
-    function _Launch(
-        rawMessage memory _rawMessage
-    ) internal virtual LaunchHook(_rawMessage) {}
+        for (uint256 i = 0; i < message.length; i++) {
+            signatures[i] = abi.encodePacked(
+                mode[i],
+                uint256(uint160(targetContarct[i])),
+                gasLimit[i],
+                message[i]
+            );
+        }
+
+        return signatures;
+    }
 }

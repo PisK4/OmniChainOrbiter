@@ -22,7 +22,7 @@ import {
   EventLog,
   BigNumberish,
 } from "ethers";
-import { calculateTxGas } from "../scripts/utils";
+import { GasMonitor, calculateTxGas } from "../scripts/utils";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
@@ -58,8 +58,15 @@ export async function bridgeTransfer(
 
   const tx = await token
     .connect(from)
-    .bridgeTransfer(args.destChainId, args.receiver, args.amount, args.relayer);
-
+    .bridgeTransfer(
+      args.destChainId,
+      args.receiver,
+      args.amount,
+      args.relayer,
+      {
+        value: ethers.parseEther("1"),
+      }
+    );
   let messageId: string = "";
   let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
 
@@ -69,7 +76,9 @@ export async function bridgeTransfer(
   });
 
   const receipt = await tx.wait();
-  await calculateTxGas(tx, "bridgeTransfer", true);
+  let gasMonitor: GasMonitor[] = [];
+  gasMonitor.push(await calculateTxGas(tx, "bridgeTransfer", true));
+  console.table(gasMonitor);
   console.log(
     "from:",
     await from.getAddress(),
@@ -104,5 +113,7 @@ export async function relayerMessage(
   );
 
   const receipt = await tx.wait();
-  await calculateTxGas(tx, "relayerMessage", true);
+  let gasMonitor: GasMonitor[] = [];
+  gasMonitor.push(await calculateTxGas(tx, "relayerMessage", true));
+  console.table(gasMonitor);
 }
