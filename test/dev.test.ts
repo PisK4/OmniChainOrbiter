@@ -22,7 +22,8 @@ import {
   EventLog,
   BigNumberish,
 } from "ethers";
-import { calculateTxGas, getCurrentTime, mineXTimes } from "../scripts/utils";
+import { calculateTxGas } from "../scripts/utils";
+import { bridgeTransfer, relayerMessage } from "../test/utils.methods";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
@@ -281,83 +282,3 @@ describe("OrbiterStation", () => {
     );
   });
 });
-
-async function bridgeTransfer(
-  token: OminiToken,
-  from: HardhatEthersSigner,
-  args: {
-    destChainId: number;
-    receiver: string;
-    amount: number;
-    relayer: string;
-  }
-): Promise<{
-  messageId: string;
-  params: IMessageSpaceStation.ParamsLaunchStruct;
-}> {
-  const LaunchPadAddress = await token.LaunchPad();
-  console.log("LaunchPadAddress:", LaunchPadAddress);
-
-  const LaunchPad = new MessageSpaceStation__factory(from).attach(
-    LaunchPadAddress
-  );
-
-  const successfulLaunchPromise = new Promise((resolve) => {
-    LaunchPad.on(
-      "SuccessfulLaunch",
-      (messageId: string, params: IMessageSpaceStation.ParamsLaunchStruct) => {
-        resolve({ messageId, params });
-      }
-    );
-  });
-
-  const tx = await token
-    .connect(from)
-    .bridgeTransfer(args.destChainId, args.receiver, args.amount, args.relayer);
-
-  let messageId: string = "";
-  let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
-
-  successfulLaunchPromise.then((result: any) => {
-    messageId = result.messageId.hash;
-    params = result.params;
-  });
-
-  const receipt = await tx.wait();
-  await calculateTxGas(tx, "bridgeTransfer", true);
-  console.log(
-    "from:",
-    await from.getAddress(),
-    "to:",
-    args.receiver,
-    "amount:",
-    args.amount
-  );
-
-  return { messageId, params };
-}
-
-async function relayerMessage(
-  OrbiterStation: MessageSpaceStation,
-  relayer: HardhatEthersSigner,
-  args: {
-    mptRoot: BytesLike;
-    aggregatedEarlistArrivalTime: BigNumberish;
-    aggregatedLatestArrivalTime: BigNumberish;
-    params: IMessageSpaceStation.ParamsLandingStruct[];
-  }
-) {
-  const landInstance = OrbiterStation.connect(relayer).getFunction(
-    "Landing(bytes32,uint64,uint64,(uint64,uint24,address,uint256,bytes32,bytes)[])"
-  );
-
-  const tx = await landInstance(
-    args.mptRoot,
-    args.aggregatedEarlistArrivalTime,
-    args.aggregatedLatestArrivalTime,
-    args.params
-  );
-
-  const receipt = await tx.wait();
-  await calculateTxGas(tx, "relayerMessage", true);
-}

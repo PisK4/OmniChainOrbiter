@@ -20,6 +20,14 @@ export const calculateTxGas = async (
   getTransactionfee = false,
   index?: number
 ) => {
+  interface GasMonitor {
+    action?: string;
+    totoalGas: bigint;
+    inputDataGas: bigint;
+    excutionGas: bigint;
+  }
+  let gasMonitor: GasMonitor = {} as GasMonitor;
+
   const { maxPriorityFeePerGas } = await ethers.provider.getFeeData();
   const transactionReceipt = await tx.wait();
   // const basefee = baseFeePerGas!.toNumber();
@@ -28,33 +36,13 @@ export const calculateTxGas = async (
   // const transactionfee = gasUsed * basefee;
   const inputGasUsed = callDataCost(tx.data);
   // const priorityFee = tx.effectiveGasPrice?.sub(basefee).toNumber();
-  if (getTransactionfee) {
-    console.log(
-      title ? title : "gasUsed",
-      index ? index : "",
-      "total_Gas:",
-      gasUsed,
-      "excution_Gas",
-      gasUsed - inputGasUsed - 21000n,
-      "inputData_Gas:",
-      inputGasUsed
-      // "fee:",
-      // transactionfee,
-      // "basefee:",
-      // basefee
-    );
-  } else {
-    console.log(
-      title ? title : "gasUsed",
-      index ? index : "",
-      "total_Gas:",
-      gasUsed,
-      // "excution_Gas",
-      // gasUsed - inputGasUsed - 21000,
-      "inputData_Gas:",
-      inputGasUsed
-    );
-  }
+  gasMonitor = {
+    action: title?.toString(),
+    totoalGas: gasUsed,
+    inputDataGas: inputGasUsed,
+    excutionGas: gasUsed - inputGasUsed - 21000n,
+  };
+  console.table(gasMonitor);
   return {
     gasUsed,
     gasPrice,

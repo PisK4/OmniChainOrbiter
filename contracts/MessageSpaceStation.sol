@@ -12,8 +12,6 @@ import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-import "hardhat/console.sol";
-
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
