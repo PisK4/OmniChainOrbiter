@@ -7,14 +7,12 @@ interface IOminiToken {
     function bridgeTransfer(
         uint64 destChainId,
         address receiver,
-        uint256 amount,
-        address relayer
+        uint256 amount
     ) external payable;
 
     function fetchOminiTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
-        uint256[] calldata amount,
-        address relayer
+        uint256[] calldata amount
     ) external view returns (uint256);
 }

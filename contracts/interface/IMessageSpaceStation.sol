@@ -13,6 +13,16 @@ interface IMessageSpaceStation {
         bytes[] message;
     }
 
+    struct launchSingleMsgParams {
+        uint64 destChainld;
+        uint64 earlistArrivalTime;
+        uint64 latestArrivalTime;
+        address sender;
+        address relayer;
+        bytes aditionParams;
+        bytes message;
+    }
+
     struct paramsLanding {
         uint64 srcChainld;
         uint24 nonceLandingCurrent;
@@ -29,6 +39,10 @@ interface IMessageSpaceStation {
     }
 
     event SuccessfulLaunch(bytes32[] indexed messageId, paramsLaunch params);
+    event SuccessfulLaunchSingle(
+        bytes32 indexed messageId,
+        launchSingleMsgParams params
+    );
     event SuccessfulLanding(bytes32 indexed messageId, paramsLanding params);
     event SuccessfulBatchLanding(
         bytes32 indexed messageId,
@@ -40,6 +54,10 @@ interface IMessageSpaceStation {
     function Launch(
         paramsLaunch calldata params
     ) external payable returns (bytes32[] memory messageId);
+
+    function Launch(
+        launchSingleMsgParams calldata params
+    ) external payable returns (bytes32 messageId);
 
     function Landing(
         bytes32 mptRoot,
@@ -63,6 +81,10 @@ interface IMessageSpaceStation {
 
     function FetchProtocolFee(
         paramsLaunch calldata params
+    ) external view returns (uint256);
+
+    function FetchProtocolFee(
+        launchSingleMsgParams calldata params
     ) external view returns (uint256);
 
     function FetchProtocolFee(

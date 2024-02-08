@@ -10,6 +10,10 @@ interface IMessagePaymentSystem {
     ) external view returns (uint256);
 
     function fetchProtocolFee_(
+        IMessageSpaceStation.launchSingleMsgParams calldata params
+    ) external view returns (uint256);
+
+    function fetchProtocolFee_(
         IOrbiterMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 }

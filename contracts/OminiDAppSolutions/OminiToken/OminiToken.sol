@@ -87,11 +87,10 @@ contract OminiToken is
     function bridgeTransfer(
         uint64 destChainId,
         address receiver,
-        uint256 amount,
-        address relayer
+        uint256 amount
     ) external payable override {
         _tokenHandlingStrategy(amount);
-        bridgeTransferHandler(destChainId, receiver, amount, relayer);
+        bridgeTransferHandler(destChainId, receiver, amount);
     }
 
     function setMirrorToken(
@@ -116,35 +115,63 @@ contract OminiToken is
     }
 
     function bridgeTransferHandler(
+        uint64[] calldata destChainId,
+        address[] calldata receiver,
+        uint256[] calldata amount
+    ) public {
+        // uint64[] memory destChainIdArr = new uint64[](1);
+        // destChainIdArr[0] = destChainId;
+        // bytes[] memory message = new bytes[](1);
+        // message[0] = _fetchSignature(receiver, amount);
+        // address[] memory targetContract = new address[](1);
+        // targetContract[0] = mirrorToken[destChainId];
+        // bytes1[] memory mode = new bytes1[](1);
+        // mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
+        // uint24[] memory gasLimit = new uint24[](1);
+        // gasLimit[0] = MINIMAL_GAS_LIMIT;
+        // emit2LaunchPad(
+        //     IMessageSpaceStation.paramsLaunch(
+        //         destChainIdArr,
+        //         uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
+        //         uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+        //         msg.sender,
+        //         DEFAULT_RELAYER,
+        //         new bytes[](0),
+        //         PacketMessages(mode, gasLimit, targetContract, message)
+        //     )
+        // );
+    }
+
+    function bridgeTransferHandler(
         uint64 destChainId,
         address receiver,
-        uint256 amount,
-        address relayer
-    ) public virtual {
-        uint64[] memory destChainIdArr = new uint64[](1);
-        destChainIdArr[0] = destChainId;
+        uint256 amount
+    ) public payable virtual {
+        // message[0] = _fetchSignature(receiver, amount);
 
-        bytes[] memory message = new bytes[](1);
-        message[0] = _fetchSignature(receiver, amount);
+        // address[] memory targetContract = new address[](1);
+        // targetContract[0] = mirrorToken[destChainId];
 
-        address[] memory targetContract = new address[](1);
-        targetContract[0] = mirrorToken[destChainId];
+        // bytes1[] memory mode = new bytes1[](1);
+        // mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
 
-        bytes1[] memory mode = new bytes1[](1);
-        mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
+        // uint24[] memory gasLimit = new uint24[](1);
+        // gasLimit[0] = MINIMAL_GAS_LIMIT;
 
-        uint24[] memory gasLimit = new uint24[](1);
-        gasLimit[0] = MINIMAL_GAS_LIMIT;
-
-        emit2LaunchPad(
-            IMessageSpaceStation.paramsLaunch(
-                destChainIdArr,
+        LaunchPad.Launch{value: msg.value}(
+            IMessageSpaceStation.launchSingleMsgParams(
+                destChainId,
                 uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                 uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
                 msg.sender,
-                relayer,
-                new bytes[](0),
-                PacketMessages(mode, gasLimit, targetContract, message)
+                DEFAULT_RELAYER,
+                new bytes(0),
+                abi.encodePacked(
+                    MessageTypeLib.ARBITRARY_ACTIVATE,
+                    MINIMAL_GAS_LIMIT,
+                    mirrorToken[destChainId],
+                    _fetchSignature(receiver, amount)
+                )
             )
         );
     }
@@ -155,8 +182,7 @@ contract OminiToken is
     function fetchOminiTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
-        uint256[] calldata amount,
-        address relayer
+        uint256[] calldata amount
     ) external view virtual override returns (uint256) {
         if (
             destChainId.length != receiver.length ||
@@ -179,7 +205,7 @@ contract OminiToken is
                     uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                     uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
                     msg.sender,
-                    relayer,
+                    DEFAULT_RELAYER,
                     new bytes[](0),
                     PacketMessages(mode, gasLimit, targetContract, message)
                 )

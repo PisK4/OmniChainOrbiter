@@ -107,11 +107,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         returns (bytes32[] memory messageId)
     {
         if (msg.value < FetchProtocolFee(params)) {
-            console.log("msg.value: %s", msg.value);
-            console.log(
-                "FetchProtocolFee(params): %s",
-                FetchProtocolFee(params)
-            );
             revert Errors.ValueNotMatched();
         }
 
@@ -150,6 +145,37 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
 
         emit SuccessfulLaunch(messageId, params);
+    }
+
+    function Launch(
+        launchSingleMsgParams calldata params
+    ) external payable override engineCheck returns (bytes32 messageId) {
+        if (msg.value < FetchProtocolFee(params)) {
+            revert Errors.ValueNotMatched();
+        }
+
+        if (
+            (params.earlistArrivalTime <
+                block.timestamp + MINIMAL_ARRIVAL_TIME) ||
+            (params.latestArrivalTime >
+                block.timestamp + MAXIMAL_ARRIVAL_TIME) ||
+            params.latestArrivalTime < params.earlistArrivalTime
+        ) {
+            revert Errors.ArrivalTimeNotMakeSense();
+        }
+
+        // messageId = _LaunchOne2One(params);
+        messageId = nonceLanding[params.destChainld][params.sender]
+            .fetchMessageId(
+                block.chainid,
+                params.destChainld,
+                params.sender,
+                address(this)
+            );
+        nonceLaunch.update(params.destChainld, params.sender);
+
+        emit SuccessfulLaunchSingle(messageId, params);
+        console.log("Launch! messageId:", uint256(messageId));
     }
 
     /// @notice each message will be sent to corresponding chain
@@ -344,6 +370,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @return protocol fee, the unit is wei
     function FetchProtocolFee(
         paramsLaunch calldata params
+    ) public view override returns (uint256) {
+        return paymentSystem.fetchProtocolFee_(params);
+    }
+
+    function FetchProtocolFee(
+        launchSingleMsgParams calldata params
     ) public view override returns (uint256) {
         return paymentSystem.fetchProtocolFee_(params);
     }

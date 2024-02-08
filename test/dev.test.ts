@@ -121,7 +121,6 @@ describe("OrbiterStation", () => {
         destChainId: 2,
         receiver: await chainBReceiver.getAddress(),
         amount: 100,
-        relayer: await chainADeployer.getAddress(),
       }
     );
 

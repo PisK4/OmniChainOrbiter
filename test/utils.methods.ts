@@ -37,43 +37,39 @@ export async function bridgeTransfer(
     destChainId: number;
     receiver: string;
     amount: number;
-    relayer: string;
   }
 ): Promise<{
   messageId: string;
-  params: IMessageSpaceStation.ParamsLaunchStruct;
+  params: IMessageSpaceStation.LaunchSingleMsgParamsStruct;
 }> {
   const bridgeTransferFee = await token.fetchOminiTokenTransferFee(
     [args.destChainId],
     [args.receiver],
-    [args.amount],
-    args.relayer
+    [args.amount]
   );
 
   const LaunchPad = new MessageSpaceStation__factory(from).attach(
     await token.LaunchPad()
   );
   let messageId: string = "";
-  let params: IMessageSpaceStation.ParamsLaunchStruct = {} as any;
+  let params: IMessageSpaceStation.LaunchSingleMsgParamsStruct = {} as any;
   LaunchPad.on(
-    "SuccessfulLaunch",
-    (_messageId: any, _params: IMessageSpaceStation.ParamsLaunchStruct) => {
-      messageId = _messageId.hash;
+    "SuccessfulLaunchSingle",
+    (
+      _messageId: any,
+      _params: IMessageSpaceStation.LaunchSingleMsgParamsStruct
+    ) => {
+      console.log("SuccessfulLaunchSingle", _messageId, _params);
+      messageId = _messageId;
       params = _params;
     }
   );
 
   const tx = await token
     .connect(from)
-    .bridgeTransfer(
-      args.destChainId,
-      args.receiver,
-      args.amount,
-      args.relayer,
-      {
-        value: bridgeTransferFee * BigInt(2),
-      }
-    );
+    .bridgeTransfer(args.destChainId, args.receiver, args.amount, {
+      value: bridgeTransferFee * BigInt(2),
+    });
   const receipt = await tx.wait();
 
   if (!messageId) {
