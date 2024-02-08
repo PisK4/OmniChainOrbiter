@@ -168,8 +168,8 @@ contract OminiToken is
                 new bytes(0),
                 abi.encodePacked(
                     MessageTypeLib.ARBITRARY_ACTIVATE,
-                    MINIMAL_GAS_LIMIT,
-                    mirrorToken[destChainId],
+                    uint256(uint160(mirrorToken[destChainId])),
+                    MAXIMAL_GAS_LIMIT,
                     _fetchSignature(receiver, amount)
                 )
             )
