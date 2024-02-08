@@ -6,12 +6,12 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-import {IMessageVerificationSystem} from "./interface/IMessageVerificationSystem.sol";
+import {INexusRelayer} from "./interface/INexusRelayer.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-contract MessageVerificationSystem is IMessageVerificationSystem, Ownable {
+contract NexusRelayer is INexusRelayer, Ownable {
     using MessageHashUtils for bytes32;
     using Utils for bytes;
     using ECDSA for bytes32;

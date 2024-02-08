@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
 
-interface IMessageVerificationSystem {
+interface INexusRelayer {
     event LaunchMessageVerified(
         IMessageSpaceStation.paramsLaunch[] indexed params
     );

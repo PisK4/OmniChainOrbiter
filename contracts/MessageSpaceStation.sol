@@ -32,14 +32,15 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @dev trusted sequencer, we will execute the message from this address
     mapping(address => bool) public trustedSequencer;
-    /// @dev engine status 0x01 is stop, 0x02 is start
-    uint8 public isPause;
-    /// @dev reentrancy guard
-    uint8 private _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
     /// @dev handle default landing mode contract address
     IDefaultLandingHandler public defaultLandingHandler;
     /// @dev protocol fee payment system address
     IMessagePaymentSystem public paymentSystem;
+
+    /// @dev engine status 0x01 is stop, 0x02 is start
+    uint8 public isPause;
+    /// @dev reentrancy guard
+    uint8 private _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
 
     bytes32 public mptRoots;
 
@@ -55,14 +56,25 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @notice if engine is stop, all message which pass to the Station will be revert
     /// @dev owner should call this function to stop the engine when the Station is under attack
-    modifier engineCheck() {
+    modifier launchEngineCheck(
+        uint64 earlistArrivalTime,
+        uint64 latestArrivalTime
+    ) {
         if (isPause == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
+        }
+
+        if (
+            (earlistArrivalTime < block.timestamp + MINIMAL_ARRIVAL_TIME) ||
+            (latestArrivalTime > block.timestamp + MAXIMAL_ARRIVAL_TIME) ||
+            latestArrivalTime < earlistArrivalTime
+        ) {
+            revert Errors.ArrivalTimeNotMakeSense();
         }
         _;
     }
 
-    modifier landingEngineCheck() {
+    modifier landinglaunchEngineCheck() {
         if (isPause == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
         }
@@ -103,21 +115,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         external
         payable
         override
-        engineCheck
+        launchEngineCheck(params.earlistArrivalTime, params.latestArrivalTime)
         returns (bytes32[] memory messageId)
     {
         if (msg.value < FetchProtocolFee(params)) {
             revert Errors.ValueNotMatched();
-        }
-
-        if (
-            (params.earlistArrivalTime <
-                block.timestamp + MINIMAL_ARRIVAL_TIME) ||
-            (params.latestArrivalTime >
-                block.timestamp + MAXIMAL_ARRIVAL_TIME) ||
-            params.latestArrivalTime < params.earlistArrivalTime
-        ) {
-            revert Errors.ArrivalTimeNotMakeSense();
         }
 
         if (params.message.length == 0) {
@@ -149,22 +151,17 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     function Launch(
         launchSingleMsgParams calldata params
-    ) external payable override engineCheck returns (bytes32 messageId) {
+    )
+        external
+        payable
+        override
+        launchEngineCheck(params.earlistArrivalTime, params.latestArrivalTime)
+        returns (bytes32 messageId)
+    {
         if (msg.value < FetchProtocolFee(params)) {
             revert Errors.ValueNotMatched();
         }
 
-        if (
-            (params.earlistArrivalTime <
-                block.timestamp + MINIMAL_ARRIVAL_TIME) ||
-            (params.latestArrivalTime >
-                block.timestamp + MAXIMAL_ARRIVAL_TIME) ||
-            params.latestArrivalTime < params.earlistArrivalTime
-        ) {
-            revert Errors.ArrivalTimeNotMakeSense();
-        }
-
-        // messageId = _LaunchOne2One(params);
         messageId = nonceLanding[params.destChainld][params.sender]
             .fetchMessageId(
                 block.chainid,
@@ -175,94 +172,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         nonceLaunch.update(params.destChainld, params.sender);
 
         emit SuccessfulLaunchSingle(messageId, params);
-        console.log("Launch! messageId:", uint256(messageId));
-    }
-
-    /// @notice each message will be sent to corresponding chain
-    /// @dev Explain to a developer any extra details
-    function _LaunchOne2One(
-        paramsLaunch calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            params.message.length
-        );
-    }
-
-    /// @notice same message will be sent to multiple chains
-    /// @dev Explain to a developer any extra details
-    function _LaunchOne2Many(
-        paramsLaunch calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.destChainld.length);
-        return
-            messageId = _fetchMessageIdThenUpdateNonce(
-                params,
-                params.destChainld.length
-            );
-    }
-
-    /// @notice many message will be sent to one chain
-    /// @dev Explain to a developer any extra details
-    function _LaunchMany2One(
-        paramsLaunch calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.message.length);
-        return
-            messageId = _fetchMessageIdThenUpdateNonce(
-                params,
-                params.destChainld[0],
-                params.message.length
-            );
-    }
-
-    /// @notice the message will be sent to all chains
-    function _Lanch2Universe(
-        paramsLaunch calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.message.length);
-        return
-            messageId = _fetchMessageIdThenUpdateNonce(
-                params,
-                UNIVERSE_CHAIN_ID,
-                params.message.length
-            );
-    }
-
-    function _fetchMessageIdThenUpdateNonce(
-        paramsLaunch calldata params,
-        uint256 loopMax
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](loopMax);
-        for (uint256 i = 0; i < loopMax; i++) {
-            messageId[i] = nonceLanding[params.destChainld[i]][params.sender]
-                .fetchMessageId(
-                    block.chainid,
-                    params.destChainld[i],
-                    params.sender,
-                    address(this)
-                );
-            nonceLaunch.update(params.destChainld[i], params.sender);
-        }
-        return messageId;
-    }
-
-    function _fetchMessageIdThenUpdateNonce(
-        paramsLaunch calldata params,
-        uint64 chainId,
-        uint256 loopMax
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](loopMax);
-        for (uint256 i = 0; i < loopMax; i++) {
-            messageId[i] = nonceLanding[chainId][params.sender].fetchMessageId(
-                block.chainid,
-                chainId,
-                params.sender,
-                address(this)
-            );
-        }
-        nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
-        return messageId;
     }
 
     /// @notice batch landing message to the Station
@@ -274,7 +183,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     )
         external
         override
-        landingEngineCheck
+        landinglaunchEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTime,
             aggregatedLatestArrivalTime
@@ -301,7 +210,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         external
         payable
         override
-        landingEngineCheck
+        landinglaunchEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTime,
             aggregatedLatestArrivalTime
@@ -391,5 +300,92 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         bool state
     ) public override onlyOwner {
         trustedSequencer[trustedSequencerAddr] = state;
+    }
+
+    /// @notice each message will be sent to corresponding chain
+    /// @dev Explain to a developer any extra details
+    function _LaunchOne2One(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory messageId) {
+        messageId = _fetchMessageIdThenUpdateNonce(
+            params,
+            params.message.length
+        );
+    }
+
+    /// @notice same message will be sent to multiple chains
+    /// @dev Explain to a developer any extra details
+    function _LaunchOne2Many(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.destChainld.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                params.destChainld.length
+            );
+    }
+
+    /// @notice many message will be sent to one chain
+    /// @dev Explain to a developer any extra details
+    function _LaunchMany2One(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.message.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                params.destChainld[0],
+                params.message.length
+            );
+    }
+
+    /// @notice the message will be sent to all chains
+    function _Lanch2Universe(
+        paramsLaunch calldata params
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](params.message.length);
+        return
+            messageId = _fetchMessageIdThenUpdateNonce(
+                params,
+                UNIVERSE_CHAIN_ID,
+                params.message.length
+            );
+    }
+
+    function _fetchMessageIdThenUpdateNonce(
+        paramsLaunch calldata params,
+        uint256 loopMax
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](loopMax);
+        for (uint256 i = 0; i < loopMax; i++) {
+            messageId[i] = nonceLanding[params.destChainld[i]][params.sender]
+                .fetchMessageId(
+                    block.chainid,
+                    params.destChainld[i],
+                    params.sender,
+                    address(this)
+                );
+            nonceLaunch.update(params.destChainld[i], params.sender);
+        }
+        return messageId;
+    }
+
+    function _fetchMessageIdThenUpdateNonce(
+        paramsLaunch calldata params,
+        uint64 chainId,
+        uint256 loopMax
+    ) private returns (bytes32[] memory) {
+        bytes32[] memory messageId = new bytes32[](loopMax);
+        for (uint256 i = 0; i < loopMax; i++) {
+            messageId[i] = nonceLanding[chainId][params.sender].fetchMessageId(
+                block.chainid,
+                chainId,
+                params.sender,
+                address(this)
+            );
+        }
+        nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
+        return messageId;
     }
 }

@@ -130,7 +130,7 @@ describe("OrbiterStation", () => {
       sender: params.sender,
       value: 0,
       messgeId: messageId,
-      message: params.message[0],
+      message: params.message,
     };
 
     await mine(600);

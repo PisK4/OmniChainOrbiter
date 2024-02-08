@@ -59,7 +59,6 @@ export async function bridgeTransfer(
       _messageId: any,
       _params: IMessageSpaceStation.LaunchSingleMsgParamsStruct
     ) => {
-      console.log("SuccessfulLaunchSingle", _messageId, _params);
       messageId = _messageId;
       params = _params;
     }
