@@ -24,7 +24,7 @@ contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
     constructor() Ownable(msg.sender) {}
 
     function fetchProtocolFee_(
-        IMessageSpaceStation.paramsLaunch calldata params
+        IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external pure override returns (uint256) {
         (params);
         return (0.1 ether);

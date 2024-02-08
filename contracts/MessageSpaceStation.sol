@@ -105,12 +105,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @notice LaunchPad is the function that user or DApps send cross-chain message to orther chain
     ///         Once the message is sent, the Relay will validate the message and send it to the target chain
-    /// @dev the arguments of the function is packed in the paramsLaunch struct
+    /// @dev the arguments of the function is packed in the launchMultiMsgParams struct
     ///      message won't be sent if the message is not valid or Protocol fee is not matched
     /// @param params the cross-chain needed params struct
     /// @return messageId the message id of the message
     function Launch(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     )
         external
         payable
@@ -278,7 +278,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @param params the cross-chain needed params struct
     /// @return protocol fee, the unit is wei
     function FetchProtocolFee(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) public view override returns (uint256) {
         return paymentSystem.fetchProtocolFee_(params);
     }
@@ -305,7 +305,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @notice each message will be sent to corresponding chain
     /// @dev Explain to a developer any extra details
     function _LaunchOne2One(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) private returns (bytes32[] memory messageId) {
         messageId = _fetchMessageIdThenUpdateNonce(
             params,
@@ -316,7 +316,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @notice same message will be sent to multiple chains
     /// @dev Explain to a developer any extra details
     function _LaunchOne2Many(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](params.destChainld.length);
         return
@@ -329,7 +329,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @notice many message will be sent to one chain
     /// @dev Explain to a developer any extra details
     function _LaunchMany2One(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](params.message.length);
         return
@@ -342,7 +342,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @notice the message will be sent to all chains
     function _Lanch2Universe(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](params.message.length);
         return
@@ -354,7 +354,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function _fetchMessageIdThenUpdateNonce(
-        paramsLaunch calldata params,
+        launchMultiMsgParams calldata params,
         uint256 loopMax
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](loopMax);
@@ -372,7 +372,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function _fetchMessageIdThenUpdateNonce(
-        paramsLaunch calldata params,
+        launchMultiMsgParams calldata params,
         uint64 chainId,
         uint256 loopMax
     ) private returns (bytes32[] memory) {

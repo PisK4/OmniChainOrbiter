@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
 
 interface IMessageSpaceStation {
-    struct paramsLaunch {
+    struct launchMultiMsgParams {
         uint64[] destChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
@@ -38,7 +38,10 @@ interface IMessageSpaceStation {
         bytes32 messgeId;
     }
 
-    event SuccessfulLaunch(bytes32[] indexed messageId, paramsLaunch params);
+    event SuccessfulLaunch(
+        bytes32[] indexed messageId,
+        launchMultiMsgParams params
+    );
     event SuccessfulLaunchSingle(
         bytes32 indexed messageId,
         launchSingleMsgParams params
@@ -52,7 +55,7 @@ interface IMessageSpaceStation {
     event PaymentSystemChanging(address paymentSystemAddress);
 
     function Launch(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) external payable returns (bytes32[] memory messageId);
 
     function Launch(
@@ -80,7 +83,7 @@ interface IMessageSpaceStation {
     function SetPaymentSystem(address paymentSystemAddress) external;
 
     function FetchProtocolFee(
-        paramsLaunch calldata params
+        launchMultiMsgParams calldata params
     ) external view returns (uint256);
 
     function FetchProtocolFee(

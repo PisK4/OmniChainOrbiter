@@ -18,12 +18,12 @@ interface IOrbiterMessageEmitter {
     }
 
     function emit2LaunchPad(
-        IMessageSpaceStation.paramsLaunch calldata params
+        IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external payable;
 
     function converActivateRawMsg(
         activateRawMsg memory rawMsg
-    ) external view returns (IMessageSpaceStation.paramsLaunch memory);
+    ) external view returns (IMessageSpaceStation.launchMultiMsgParams memory);
 
     function PacketMessages(
         bytes1[] memory mode,

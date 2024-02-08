@@ -6,7 +6,7 @@ import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
 
 interface IMessagePaymentSystem {
     function fetchProtocolFee_(
-        IMessageSpaceStation.paramsLaunch calldata params
+        IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external view returns (uint256);
 
     function fetchProtocolFee_(

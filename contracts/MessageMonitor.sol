@@ -135,6 +135,8 @@ abstract contract MessageMonitor {
     mapping(uint64 => mapping(address => uint24)) public nonceLaunch;
     mapping(uint64 => mapping(address => uint24)) public nonceLanding;
 
+    // mapping(bytes32 => uint24) public nonceLaunch;
+
     function _activateSDKSig(bytes calldata message) internal virtual {
         (
             address contractAddr,

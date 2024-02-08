@@ -5,14 +5,14 @@ import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
 
 interface INexusRelayer {
     event LaunchMessageVerified(
-        IMessageSpaceStation.paramsLaunch[] indexed params
+        IMessageSpaceStation.launchMultiMsgParams[] indexed params
     );
 
     function verifyLaunchMessage(
         bytes32[] memory proof,
         bool[] memory proofFlags,
         bytes32 root,
-        IMessageSpaceStation.paramsLaunch[] calldata params,
+        IMessageSpaceStation.launchMultiMsgParams[] calldata params,
         bytes[] calldata launchParamsSignatures
     ) external;
 }

@@ -130,7 +130,7 @@ contract OminiToken is
         // uint24[] memory gasLimit = new uint24[](1);
         // gasLimit[0] = MINIMAL_GAS_LIMIT;
         // emit2LaunchPad(
-        //     IMessageSpaceStation.paramsLaunch(
+        //     IMessageSpaceStation.launchMultiMsgParams(
         //         destChainIdArr,
         //         uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
         //         uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
@@ -200,7 +200,7 @@ contract OminiToken is
 
         return
             LaunchPad.FetchProtocolFee(
-                IMessageSpaceStation.paramsLaunch(
+                IMessageSpaceStation.launchMultiMsgParams(
                     destChainId,
                     uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                     uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),

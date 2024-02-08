@@ -22,7 +22,7 @@ contract NexusRelayer is INexusRelayer, Ownable {
         bytes32[] memory proof,
         bool[] memory proofFlags,
         bytes32 root,
-        IMessageSpaceStation.paramsLaunch[] calldata params,
+        IMessageSpaceStation.launchMultiMsgParams[] calldata params,
         bytes[] calldata launchParamsSignatures
     ) external override {
         address[] memory validators = _validateSignature(
@@ -46,7 +46,7 @@ contract NexusRelayer is INexusRelayer, Ownable {
     }
 
     function _validateSignature(
-        // IMessageSpaceStation.paramsLaunch calldata params,
+        // IMessageSpaceStation.launchMultiMsgParams calldata params,
         bytes32 encodedParams,
         bytes[] calldata launchParamsSignatures
     ) internal pure returns (address[] memory) {

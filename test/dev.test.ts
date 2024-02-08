@@ -177,17 +177,18 @@ describe("OrbiterStation", () => {
       100
     );
     const latestArrivalTime = Math.floor(Date.now() / 1000) + 10000;
-    let paramsLaunch: IMessageSpaceStation.ParamsLaunchStruct = {
-      destChainld: (await ethers.provider.getNetwork()).chainId,
-      earlistArrivalTime: 1,
-      latestArrivalTime: latestArrivalTime,
-      sender: await signers[0].getAddress(),
-      relayer: await signers[0].getAddress(),
-      aditionParams: "0x",
-      message: demo1message,
-    };
+    let launchMultiMsgParams: IMessageSpaceStation.launchMultiMsgParamsStruct =
+      {
+        destChainld: (await ethers.provider.getNetwork()).chainId,
+        earlistArrivalTime: 1,
+        latestArrivalTime: latestArrivalTime,
+        sender: await signers[0].getAddress(),
+        relayer: await signers[0].getAddress(),
+        aditionParams: "0x",
+        message: demo1message,
+      };
 
-    const tx = await OrbiterStation.Launch(paramsLaunch);
+    const tx = await OrbiterStation.Launch(launchMultiMsgParams);
     const LaunchTxrecipt = await tx.wait();
     await calculateTxGas(tx, "Launch", true);
     const messageIdJustLancuhed = LaunchTxrecipt!.logs[0].args.messageId;
@@ -196,8 +197,8 @@ describe("OrbiterStation", () => {
     console.log(
       "nonce2:",
       await OrbiterStation.nonceLaunch(
-        paramsLaunch.destChainld,
-        paramsLaunch.sender
+        launchMultiMsgParams.destChainld,
+        launchMultiMsgParams.sender
       )
     );
 
@@ -242,8 +243,8 @@ describe("OrbiterStation", () => {
     console.log(
       "nonce1:",
       await OrbiterStation.nonceLaunch(
-        paramsLaunch.destChainld,
-        paramsLaunch.sender
+        launchMultiMsgParams.destChainld,
+        launchMultiMsgParams.sender
       )
     );
 
