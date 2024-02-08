@@ -13,13 +13,12 @@ import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-import "hardhat/console.sol";
-
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
 contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
-    using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
+    // using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
+    using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
     using MessageMonitorLib for uint24;
@@ -58,10 +57,15 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     /// @dev owner should call this function to stop the engine when the Station is under attack
     modifier launchEngineCheck(
         uint64 earlistArrivalTime,
-        uint64 latestArrivalTime
+        uint64 latestArrivalTime,
+        uint256 protocolFee
     ) {
         if (isPause == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
+        }
+
+        if (msg.value < protocolFee) {
+            revert Errors.ValueNotMatched();
         }
 
         if (
@@ -115,12 +119,16 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         external
         payable
         override
-        launchEngineCheck(params.earlistArrivalTime, params.latestArrivalTime)
+        launchEngineCheck(
+            params.earlistArrivalTime,
+            params.latestArrivalTime,
+            FetchProtocolFee(params)
+        )
         returns (bytes32[] memory messageId)
     {
-        if (msg.value < FetchProtocolFee(params)) {
-            revert Errors.ValueNotMatched();
-        }
+        // if (msg.value < FetchProtocolFee(params)) {
+        //     revert Errors.ValueNotMatched();
+        // }
 
         if (params.message.length == 0) {
             revert Errors.InvalidMessage();
@@ -155,21 +163,23 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         external
         payable
         override
-        launchEngineCheck(params.earlistArrivalTime, params.latestArrivalTime)
+        launchEngineCheck(
+            params.earlistArrivalTime,
+            params.latestArrivalTime,
+            FetchProtocolFee(params)
+        )
         returns (bytes32 messageId)
     {
-        if (msg.value < FetchProtocolFee(params)) {
-            revert Errors.ValueNotMatched();
-        }
+        // if (msg.value < FetchProtocolFee(params)) {
+        //     revert Errors.ValueNotMatched();
+        // }
 
-        messageId = nonceLanding[params.destChainld][params.sender]
-            .fetchMessageId(
-                block.chainid,
-                params.destChainld,
-                params.sender,
-                address(this)
-            );
-        nonceLaunch.update(params.destChainld, params.sender);
+        messageId = nonceLaunch.handling(
+            block.chainid,
+            params.destChainld,
+            params.sender,
+            address(this)
+        );
 
         emit SuccessfulLaunchSingle(messageId, params);
     }
@@ -359,14 +369,12 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
-            messageId[i] = nonceLanding[params.destChainld[i]][params.sender]
-                .fetchMessageId(
-                    block.chainid,
-                    params.destChainld[i],
-                    params.sender,
-                    address(this)
-                );
-            nonceLaunch.update(params.destChainld[i], params.sender);
+            messageId[i] = nonceLaunch.handling(
+                block.chainid,
+                params.destChainld[i],
+                params.sender,
+                address(this)
+            );
         }
         return messageId;
     }
@@ -378,7 +386,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
-            messageId[i] = nonceLanding[chainId][params.sender].fetchMessageId(
+            messageId[i] = nonceLaunch.fetchMessageId(
                 block.chainid,
                 chainId,
                 params.sender,
