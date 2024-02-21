@@ -117,7 +117,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         launchEngineCheck(
             params.earlistArrivalTime,
             params.latestArrivalTime,
-            FetchProtocolFee(params)
+            EstimateFee(params)
         )
         returns (bytes32[] memory messageId)
     {
@@ -157,7 +157,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         launchEngineCheck(
             params.earlistArrivalTime,
             params.latestArrivalTime,
-            FetchProtocolFee(params)
+            EstimateFee(params)
         )
         returns (bytes32 messageId)
     {
@@ -264,22 +264,22 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         emit PaymentSystemChanging(paymentSystemAddress);
     }
 
-    function FetchProtocolFee(
+    function EstimateFee(
         launchMultiMsgParams calldata params
     ) public view override returns (uint256) {
-        return paymentSystem.fetchProtocolFee_(params);
+        return paymentSystem.EstimateFee_(params);
     }
 
-    function FetchProtocolFee(
+    function EstimateFee(
         launchSingleMsgParams calldata params
     ) public view override returns (uint256) {
-        return paymentSystem.fetchProtocolFee_(params);
+        return paymentSystem.EstimateFee_(params);
     }
 
-    function FetchProtocolFee(
+    function EstimateFee(
         IMessageEmitter.activateRawMsg calldata params
     ) public view override returns (uint256) {
-        return paymentSystem.fetchProtocolFee_(params);
+        return paymentSystem.EstimateFee_(params);
     }
 
     function ConfigTrustedSequencer(

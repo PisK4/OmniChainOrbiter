@@ -14,7 +14,7 @@ import {Errors} from "./library/Errors.sol";
 
 /// DApp should pay the protocol fee to the Station before they send the cross-chain message
 /// MessagePaymentSystem is the contract that calculate the protocol fee
-/// anyone can call the fetchProtocolFee function to get the protocol fee for free
+/// anyone can call the EstimateFee function to get the protocol fee for free
 contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
     using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for bytes;
@@ -23,21 +23,21 @@ contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external pure override returns (uint256) {
         (params);
         return (0.1 ether);
     }
 
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageEmitter.activateRawMsg calldata params
     ) external pure override returns (uint256) {
         (params);
         return (0.1 ether);
     }
 
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageSpaceStation.launchSingleMsgParams calldata params
     ) external pure override returns (uint256) {
         (params);

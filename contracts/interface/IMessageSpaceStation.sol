@@ -110,15 +110,15 @@ interface IMessageSpaceStation {
     ///      this method will return the protocol fee that the message need to pay, longer message will pay more
     /// @param params the cross-chain needed params struct
     /// @return protocol fee, the unit is wei
-    function FetchProtocolFee(
+    function EstimateFee(
         launchMultiMsgParams calldata params
     ) external view returns (uint256);
 
-    function FetchProtocolFee(
+    function EstimateFee(
         launchSingleMsgParams calldata params
     ) external view returns (uint256);
 
-    function FetchProtocolFee(
+    function EstimateFee(
         IMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 

@@ -5,15 +5,15 @@ import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
 import {IMessageEmitter} from "./IMessageEmitter.sol";
 
 interface IMessagePaymentSystem {
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external view returns (uint256);
 
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageSpaceStation.launchSingleMsgParams calldata params
     ) external view returns (uint256);
 
-    function fetchProtocolFee_(
+    function EstimateFee_(
         IMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 }

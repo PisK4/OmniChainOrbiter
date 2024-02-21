@@ -169,7 +169,7 @@ abstract contract OmniTokenCore is
         ) = _allocMemory(destChainId, receiver, amount);
 
         return
-            LaunchPad.FetchProtocolFee(
+            LaunchPad.EstimateFee(
                 IMessageSpaceStation.launchMultiMsgParams(
                     uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
                     uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),

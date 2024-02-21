@@ -169,8 +169,6 @@ library MessageMonitorLib {
 
 abstract contract MessageMonitor {
     using MessageMonitorLib for bytes;
-    // mapping(uint64 => mapping(address => uint24)) public nonceLaunch;
-    // mapping(uint64 => mapping(address => uint24)) public nonceLanding;
     mapping(bytes32 => uint24) public nonceLaunch;
     mapping(bytes32 => uint24) public nonceLanding;
 
