@@ -1,8 +1,8 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { mine, mineUpTo } from "@nomicfoundation/hardhat-network-helpers";
 import {
-  OminiToken,
-  OminiToken__factory,
+  OmniToken,
+  OmniToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
   ChainA_EncodeMessageDemo,
@@ -26,12 +26,12 @@ import { GasMonitor, calculateTxGas } from "../scripts/utils";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
-  deployOminiToken,
+  deployOmniToken,
 } from "../scripts/utils.deployment";
 import { expect } from "chai";
 
 export async function bridgeTransfer(
-  token: OminiToken,
+  token: OmniToken,
   from: HardhatEthersSigner,
   args: {
     destChainId: number;
@@ -42,7 +42,7 @@ export async function bridgeTransfer(
   messageId: string;
   params: IMessageSpaceStation.LaunchSingleMsgParamsStruct;
 }> {
-  const bridgeTransferFee = await token.fetchOminiTokenTransferFee(
+  const bridgeTransferFee = await token.fetchOmniTokenTransferFee(
     [args.destChainId],
     [args.receiver],
     [args.amount]

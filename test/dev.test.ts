@@ -1,8 +1,8 @@
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { mine, mineUpTo } from "@nomicfoundation/hardhat-network-helpers";
 import {
-  OminiToken,
-  OminiToken__factory,
+  OmniToken,
+  OmniToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
   ChainA_EncodeMessageDemo,
@@ -27,13 +27,13 @@ import { bridgeTransfer, relayerMessage } from "../test/utils.methods";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
-  deployOminiToken,
+  deployOmniToken,
 } from "../scripts/utils.deployment";
 import { expect } from "chai";
 
 describe("OrbiterStation", () => {
-  let OminiTokenChainA: OminiToken;
-  let OminiTokenChainB: OminiToken;
+  let OmniTokenChainA: OmniToken;
+  let OmniTokenChainB: OmniToken;
   let OrbiterStationChainA: MessageSpaceStation;
   let OrbiterStationChainB: MessageSpaceStation;
   let signers: HardhatEthersSigner[];
@@ -66,8 +66,8 @@ describe("OrbiterStation", () => {
       paymentSystem: await PaymentSystemChainB.getAddress(),
     });
 
-    OminiTokenChainA = await deployOminiToken(chainADeployer, {
-      name: "Omini Orbiter TokenA",
+    OmniTokenChainA = await deployOmniToken(chainADeployer, {
+      name: "Omni Orbiter TokenA",
       symbol: "ORBT-A",
       initialSupply: 1000,
       LaunchPad: await OrbiterStationChainA.getAddress(),
@@ -75,8 +75,8 @@ describe("OrbiterStation", () => {
       defaultRelayer: await chainBDeployer.getAddress(),
     });
 
-    OminiTokenChainB = await deployOminiToken(chainBDeployer, {
-      name: "Omini Orbiter TokenB",
+    OmniTokenChainB = await deployOmniToken(chainBDeployer, {
+      name: "Omni Orbiter TokenB",
       symbol: "ORBT-B",
       initialSupply: 1000,
       LaunchPad: await OrbiterStationChainB.getAddress(),
@@ -88,11 +88,11 @@ describe("OrbiterStation", () => {
     await HelperContract.waitForDeployment();
   });
 
-  it("test OminiToken has been deployed", async () => {
-    const totalSupply = await OminiTokenChainA.totalSupply();
+  it("test OmniToken has been deployed", async () => {
+    const totalSupply = await OmniTokenChainA.totalSupply();
     expect(totalSupply).to.equal(1000);
 
-    const totalSupplyB = await OminiTokenChainB.totalSupply();
+    const totalSupplyB = await OmniTokenChainB.totalSupply();
     expect(totalSupplyB).to.equal(1000);
   });
 
@@ -104,18 +104,12 @@ describe("OrbiterStation", () => {
     expect(ownerB).to.equal(await chainBDeployer.getAddress());
   });
 
-  it("bridge OminiToken from ChainA to ChainB", async () => {
-    await OminiTokenChainA.setMirrorToken(
-      2,
-      await OminiTokenChainB.getAddress()
-    );
-    await OminiTokenChainB.setMirrorToken(
-      1,
-      await OminiTokenChainA.getAddress()
-    );
+  it("bridge OmniToken from ChainA to ChainB", async () => {
+    await OmniTokenChainA.setMirrorToken(2, await OmniTokenChainB.getAddress());
+    await OmniTokenChainB.setMirrorToken(1, await OmniTokenChainA.getAddress());
 
     const { messageId, params } = await bridgeTransfer(
-      OminiTokenChainA,
+      OmniTokenChainA,
       chainADeployer,
       {
         destChainId: 2,
@@ -142,17 +136,17 @@ describe("OrbiterStation", () => {
       params: [LandingParams],
     });
 
-    const chainADeployerBalance = await OminiTokenChainA.balanceOf(
+    const chainADeployerBalance = await OmniTokenChainA.balanceOf(
       await chainADeployer.getAddress()
     );
 
-    const chainATotoalSupply = await OminiTokenChainA.totalSupply();
+    const chainATotoalSupply = await OmniTokenChainA.totalSupply();
 
-    const chainBReceiverBalance = await OminiTokenChainB.balanceOf(
+    const chainBReceiverBalance = await OmniTokenChainB.balanceOf(
       await chainBReceiver.getAddress()
     );
 
-    const chainBTotoalSupply = await OminiTokenChainB.totalSupply();
+    const chainBTotoalSupply = await OmniTokenChainB.totalSupply();
 
     console.log(
       "chainADeployerBalance:",
@@ -164,7 +158,7 @@ describe("OrbiterStation", () => {
       "chainBTotoalSupply:",
       chainBTotoalSupply,
       "relayerBalance:",
-      await OminiTokenChainA.balanceOf(await chainBDeployer.getAddress())
+      await OmniTokenChainA.balanceOf(await chainBDeployer.getAddress())
     );
   });
 

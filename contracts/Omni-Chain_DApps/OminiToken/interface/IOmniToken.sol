@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-interface IOminiToken {
+interface IOmniToken {
     function mint(address toAddress, uint256 amount) external;
 
     function bridgeTransfer(
@@ -10,7 +10,7 @@ interface IOminiToken {
         uint256 amount
     ) external payable;
 
-    function fetchOminiTokenTransferFee(
+    function fetchOmniTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount

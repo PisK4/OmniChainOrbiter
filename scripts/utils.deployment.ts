@@ -7,8 +7,8 @@ import {
 } from "ethers";
 
 import {
-  OminiToken,
-  OminiToken__factory,
+  OmniToken,
+  OmniToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
   ChainA_EncodeMessageDemo,
@@ -20,7 +20,7 @@ import {
   MessagePaymentSystem__factory,
 } from "../typechain-types";
 
-interface OminiTokenConstructorArgs {
+interface OmniTokenConstructorArgs {
   name: string;
   symbol: string;
   initialSupply: BigNumberish;
@@ -29,11 +29,11 @@ interface OminiTokenConstructorArgs {
   defaultRelayer: string;
 }
 
-export async function deployOminiToken(
+export async function deployOmniToken(
   signer: HardhatEthersSigner,
-  args: OminiTokenConstructorArgs
-): Promise<OminiToken> {
-  const ominiToken = await new OminiToken__factory(signer).deploy(
+  args: OmniTokenConstructorArgs
+): Promise<OmniToken> {
+  const OmniToken = await new OmniToken__factory(signer).deploy(
     args.name,
     args.symbol,
     args.initialSupply,
@@ -41,16 +41,16 @@ export async function deployOminiToken(
     args.LandingPad,
     args.defaultRelayer
   );
-  await ominiToken.waitForDeployment();
+  await OmniToken.waitForDeployment();
 
   console.log(
-    "OminiToken",
+    "OmniToken",
     args.symbol,
     "deployed to:",
-    await ominiToken.getAddress()
+    await OmniToken.getAddress()
   );
 
-  return ominiToken;
+  return OmniToken;
 }
 
 export async function deployMessageSpaceStation(

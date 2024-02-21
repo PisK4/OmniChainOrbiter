@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IOminiToken} from "./interface/IOminiToken.sol";
+import {IOmniToken} from "./interface/IOmniToken.sol";
 import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 
 import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
@@ -11,27 +11,27 @@ import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
 import {OrbiterMessageEmitter} from "../../OrbiterMessageEmitter.sol";
 import {OrbiterMessageReceiver} from "../../OrbiterMessageReceiver.sol";
 
-abstract contract OminiTokenCore is
+abstract contract OmniTokenCore is
     ERC20,
     OrbiterMessageEmitter,
     OrbiterMessageReceiver,
-    IOminiToken,
+    IOmniToken,
     Ownable
 {
     error InvalidData();
 
-    /// @dev bellow are the default parameters for the OminiToken,
+    /// @dev bellow are the default parameters for the OmniToken,
     ///      we **strongely recommand** to override them in your own contract.
-    /// @notice OMINI_MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
-    /// @notice OMINI_MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
+    /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
+    /// @notice MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
     /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for the cross-chain message
     /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for the cross-chain message
     /// @notice DEFAULT_MODE the default mode for the cross-chain message,
     ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
     /// @notice DEFAULT_RELAYER the default relayer for the cross-chain message
 
-    uint64 immutable OMINI_MINIMAL_ARRIVAL_TIME;
-    uint64 immutable OMINI_MAXIMAL_ARRIVAL_TIME;
+    uint64 immutable MINIMAL_ARRIVAL_TIME;
+    uint64 immutable MAXIMAL_ARRIVAL_TIME;
     uint24 immutable MINIMAL_GAS_LIMIT;
     uint24 immutable MAXIMAL_GAS_LIMIT;
     bytes1 immutable DEFAULT_MODE;
@@ -119,7 +119,7 @@ abstract contract OminiTokenCore is
         address toAddress,
         uint256 amount
     ) internal pure virtual returns (bytes memory signature) {
-        signature = abi.encodeCall(IOminiToken.mint, (toAddress, amount));
+        signature = abi.encodeCall(IOmniToken.mint, (toAddress, amount));
     }
 
     function bridgeTransferHandler(
@@ -140,8 +140,8 @@ abstract contract OminiTokenCore is
         // emit2LaunchPad(
         //     IMessageSpaceStation.launchMultiMsgParams(
         //         destChainIdArr,
-        //         uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
-        //         uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+        //         uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
+        //         uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
         //         msg.sender,
         //         DEFAULT_RELAYER,
         //         new bytes[](0),
@@ -157,8 +157,8 @@ abstract contract OminiTokenCore is
     ) public payable virtual {
         emit2LaunchPad(
             IMessageSpaceStation.launchSingleMsgParams(
-                uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
-                uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+                uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
+                uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
                 DEFAULT_RELAYER,
                 msg.sender,
                 destChainId,
@@ -176,7 +176,7 @@ abstract contract OminiTokenCore is
     /// @notice before you bridgeTransfer, please call this function to get the bridge fee
     /// @dev if your token would charge a extra fee, you can override this function
     /// @return the fee of the bridge transfer
-    function fetchOminiTokenTransferFee(
+    function fetchOmniTokenTransferFee(
         uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
@@ -198,8 +198,8 @@ abstract contract OminiTokenCore is
         return
             LaunchPad.FetchProtocolFee(
                 IMessageSpaceStation.launchMultiMsgParams(
-                    uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
-                    uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
+                    uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
+                    uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
                     DEFAULT_RELAYER,
                     msg.sender,
                     destChainId,
