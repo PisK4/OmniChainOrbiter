@@ -8,13 +8,13 @@ import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 
 import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
 
-import {OrbiterMessageEmitter} from "../../OrbiterMessageEmitter.sol";
-import {OrbiterMessageReceiver} from "../../OrbiterMessageReceiver.sol";
+import {MessageEmitter} from "../../MessageEmitter.sol";
+import {MessageReceiver} from "../../MessageReceiver.sol";
 
 abstract contract OmniTokenCore is
     ERC20,
-    OrbiterMessageEmitter,
-    OrbiterMessageReceiver,
+    MessageEmitter,
+    MessageReceiver,
     IOmniToken,
     Ownable
 {
@@ -30,8 +30,8 @@ abstract contract OmniTokenCore is
         address _LandingPad
     )
         ERC20(_name, _symbol)
-        OrbiterMessageEmitter(_LaunchPad)
-        OrbiterMessageReceiver(_LandingPad)
+        MessageEmitter(_LaunchPad)
+        MessageReceiver(_LandingPad)
         Ownable(msg.sender)
     {
         BRIDGE_MODE = MessageTypeLib.ARBITRARY_ACTIVATE;

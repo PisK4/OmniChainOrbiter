@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
-import {IOrbiterMessageReceiver} from "./interface/IOrbiterMessageReceiver.sol";
+import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
 import {Errors} from "./library/Errors.sol";
 import {Utils} from "./library/Utils.sol";
 
@@ -181,7 +181,7 @@ abstract contract MessageMonitor {
     //         bytes memory signature
     //     ) = message.sliceMessage();
     //     uint256 gasBefore = gasleft();
-    //     IOrbiterMessageReceiver(contractAddr).receiveMessage(
+    //     IMessageReceiver(contractAddr).receiveMessage(
     //         uint64(block.chainid),
     //         nonceLaunch[uint64(block.chainid)][msg.sender],
     //         msg.sender,

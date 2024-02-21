@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import "./IMessageSpaceStation.sol";
 
-interface IOrbiterMessageEmitter {
+interface IMessageEmitter {
     struct activateRawMsg {
         uint64[] destChainld;
         uint64 earlistArrivalTime;

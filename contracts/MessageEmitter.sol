@@ -2,10 +2,10 @@
 pragma solidity ^0.8.23;
 
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
-import {IOrbiterMessageEmitter} from "./interface/IOrbiterMessageEmitter.sol";
+import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
 import {Utils} from "./library/Utils.sol";
 
-abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
+abstract contract MessageEmitter is IMessageEmitter {
     /// @dev bellow are the default parameters for the OmniToken,
     ///      we **strongely recommand** to override them in your own contract.
     /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message

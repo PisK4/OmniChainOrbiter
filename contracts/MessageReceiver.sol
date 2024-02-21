@@ -2,9 +2,9 @@
 pragma solidity ^0.8.23;
 
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
-import {IOrbiterMessageReceiver} from "./interface/IOrbiterMessageReceiver.sol";
+import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
 
-abstract contract OrbiterMessageReceiver is IOrbiterMessageReceiver {
+abstract contract MessageReceiver is IMessageReceiver {
     error LandingPadAccessDenied();
     IMessageSpaceStation public LandingPad;
 

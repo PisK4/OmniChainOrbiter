@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
-import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
+import {IMessageEmitter} from "./IMessageEmitter.sol";
 
 interface IMessageSpaceStation {
     struct launchSingleMsgParams {
@@ -119,7 +119,7 @@ interface IMessageSpaceStation {
     ) external view returns (uint256);
 
     function FetchProtocolFee(
-        IOrbiterMessageEmitter.activateRawMsg calldata params
+        IMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 
     /// @dev config the trusted sequencer address, only owner can call this function

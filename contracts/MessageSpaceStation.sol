@@ -6,7 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
-import {IOrbiterMessageEmitter} from "./interface/IOrbiterMessageEmitter.sol";
+import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "./library/MessageTypeLib.sol";
@@ -277,7 +277,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function FetchProtocolFee(
-        IOrbiterMessageEmitter.activateRawMsg calldata params
+        IMessageEmitter.activateRawMsg calldata params
     ) public view override returns (uint256) {
         return paymentSystem.fetchProtocolFee_(params);
     }

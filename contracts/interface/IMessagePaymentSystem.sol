@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
-import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
+import {IMessageEmitter} from "./IMessageEmitter.sol";
 
 interface IMessagePaymentSystem {
     function fetchProtocolFee_(
@@ -14,6 +14,6 @@ interface IMessagePaymentSystem {
     ) external view returns (uint256);
 
     function fetchProtocolFee_(
-        IOrbiterMessageEmitter.activateRawMsg calldata params
+        IMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 }
