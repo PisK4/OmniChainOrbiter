@@ -19,6 +19,12 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
         LaunchPad.Launch{value: msg.value}(params);
     }
 
+    function emit2LaunchPad(
+        IMessageSpaceStation.launchSingleMsgParams memory params
+    ) public payable override {
+        LaunchPad.Launch{value: msg.value}(params);
+    }
+
     function converActivateRawMsg(
         activateRawMsg memory rawMsg
     )

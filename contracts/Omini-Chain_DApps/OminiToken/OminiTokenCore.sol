@@ -155,18 +155,7 @@ abstract contract OminiTokenCore is
         address receiver,
         uint256 amount
     ) public payable virtual {
-        // message[0] = _fetchSignature(receiver, amount);
-
-        // address[] memory targetContract = new address[](1);
-        // targetContract[0] = mirrorToken[destChainId];
-
-        // bytes1[] memory mode = new bytes1[](1);
-        // mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
-
-        // uint24[] memory gasLimit = new uint24[](1);
-        // gasLimit[0] = MINIMAL_GAS_LIMIT;
-
-        LaunchPad.Launch{value: msg.value}(
+        emit2LaunchPad(
             IMessageSpaceStation.launchSingleMsgParams(
                 uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                 uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),

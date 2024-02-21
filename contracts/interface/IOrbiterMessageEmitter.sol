@@ -21,6 +21,10 @@ interface IOrbiterMessageEmitter {
         IMessageSpaceStation.launchMultiMsgParams calldata params
     ) external payable;
 
+    function emit2LaunchPad(
+        IMessageSpaceStation.launchSingleMsgParams calldata params
+    ) external payable;
+
     function converActivateRawMsg(
         activateRawMsg memory rawMsg
     ) external view returns (IMessageSpaceStation.launchMultiMsgParams memory);
