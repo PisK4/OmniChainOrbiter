@@ -72,7 +72,7 @@ describe("OrbiterStation", () => {
       initialSupply: 1000,
       LaunchPad: await OrbiterStationChainA.getAddress(),
       LandingPad: await OrbiterStationChainA.getAddress(),
-      defaultRelayer: await chainADeployer.getAddress(),
+      defaultRelayer: await chainBDeployer.getAddress(),
     });
 
     OminiTokenChainB = await deployOminiToken(chainBDeployer, {
@@ -81,7 +81,7 @@ describe("OrbiterStation", () => {
       initialSupply: 1000,
       LaunchPad: await OrbiterStationChainB.getAddress(),
       LandingPad: await OrbiterStationChainB.getAddress(),
-      defaultRelayer: await chainADeployer.getAddress(),
+      defaultRelayer: await chainBDeployer.getAddress(),
     });
 
     HelperContract = await new Helper__factory(signers[0]).deploy();
@@ -162,7 +162,9 @@ describe("OrbiterStation", () => {
       "chainATotoalSupply:",
       chainATotoalSupply,
       "chainBTotoalSupply:",
-      chainBTotoalSupply
+      chainBTotoalSupply,
+      "relayerBalance:",
+      await OminiTokenChainA.balanceOf(await chainBDeployer.getAddress())
     );
   });
 
