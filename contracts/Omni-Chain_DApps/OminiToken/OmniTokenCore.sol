@@ -20,35 +20,8 @@ abstract contract OmniTokenCore is
 {
     error InvalidData();
 
-    /// @dev bellow are the default parameters for the OmniToken,
-    ///      we **strongely recommand** to override them in your own contract.
-    /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
-    /// @notice MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
-    /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for the cross-chain message
-    /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for the cross-chain message
-    /// @notice DEFAULT_MODE the default mode for the cross-chain message,
-    ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
-    /// @notice DEFAULT_RELAYER the default relayer for the cross-chain message
-
-    uint64 immutable MINIMAL_ARRIVAL_TIME;
-    uint64 immutable MAXIMAL_ARRIVAL_TIME;
-    uint24 immutable MINIMAL_GAS_LIMIT;
-    uint24 immutable MAXIMAL_GAS_LIMIT;
-    bytes1 immutable DEFAULT_MODE;
-    address immutable DEFAULT_RELAYER;
-
     // mirror OmniToken : mirrorToken[chainId] = address
     mapping(uint64 => address) public mirrorToken;
-
-    modifier onlyLandingPad() {
-        if (msg.sender != address(LandingPad)) revert AccessDenied();
-        _;
-    }
-
-    modifier onlyLaunchPad() {
-        if (msg.sender != address(LaunchPad)) revert AccessDenied();
-        _;
-    }
 
     constructor(
         string memory _name,
@@ -61,7 +34,7 @@ abstract contract OmniTokenCore is
         OrbiterMessageReceiver(_LandingPad)
         Ownable(msg.sender)
     {
-        DEFAULT_MODE = MessageTypeLib.ARBITRARY_ACTIVATE;
+        BRIDGE_MODE = MessageTypeLib.ARBITRARY_ACTIVATE;
     }
 
     function mint(
@@ -143,7 +116,7 @@ abstract contract OmniTokenCore is
         //         uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
         //         uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
         //         msg.sender,
-        //         DEFAULT_RELAYER,
+        //         SELECTED_RELAYER,
         //         new bytes[](0),
         //         PacketMessages(mode, gasLimit, targetContract, message)
         //     )
@@ -159,7 +132,7 @@ abstract contract OmniTokenCore is
             IMessageSpaceStation.launchSingleMsgParams(
                 uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
                 uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
-                DEFAULT_RELAYER,
+                SELECTED_RELAYER,
                 msg.sender,
                 destChainId,
                 new bytes(0),
@@ -200,7 +173,7 @@ abstract contract OmniTokenCore is
                 IMessageSpaceStation.launchMultiMsgParams(
                     uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
                     uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
-                    DEFAULT_RELAYER,
+                    SELECTED_RELAYER,
                     msg.sender,
                     destChainId,
                     new bytes[](0),
@@ -237,7 +210,7 @@ abstract contract OmniTokenCore is
 
         bytes1[] memory mode = new bytes1[](dataLength);
         for (uint256 i = 0; i < dataLength; i++) {
-            mode[i] = DEFAULT_MODE;
+            mode[i] = BRIDGE_MODE;
         }
 
         uint24[] memory gasLimit = new uint24[](dataLength);

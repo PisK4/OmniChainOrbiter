@@ -16,7 +16,7 @@ contract OmniToken is OmniTokenCore {
         MAXIMAL_ARRIVAL_TIME = 30 days;
         MINIMAL_GAS_LIMIT = 100000;
         MAXIMAL_GAS_LIMIT = 500000;
-        DEFAULT_RELAYER = _defaultRelayer;
+        SELECTED_RELAYER = _defaultRelayer;
         _mint(msg.sender, _initialSupply);
     }
 

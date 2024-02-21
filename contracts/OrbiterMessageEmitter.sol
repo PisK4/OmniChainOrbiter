@@ -4,9 +4,25 @@ pragma solidity ^0.8.23;
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IOrbiterMessageEmitter} from "./interface/IOrbiterMessageEmitter.sol";
 import {Utils} from "./library/Utils.sol";
-import {Errors} from "./library/Errors.sol";
 
 abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
+    /// @dev bellow are the default parameters for the OmniToken,
+    ///      we **strongely recommand** to override them in your own contract.
+    /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
+    /// @notice MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
+    /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for the cross-chain message
+    /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for the cross-chain message
+    /// @notice BRIDGE_MODE the default mode for the cross-chain message,
+    ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
+    /// @notice SELECTED_RELAYER the default relayer for the cross-chain message
+
+    uint64 immutable MINIMAL_ARRIVAL_TIME;
+    uint64 immutable MAXIMAL_ARRIVAL_TIME;
+    uint24 immutable MINIMAL_GAS_LIMIT;
+    uint24 immutable MAXIMAL_GAS_LIMIT;
+    bytes1 immutable BRIDGE_MODE;
+    address immutable SELECTED_RELAYER;
+
     IMessageSpaceStation public LaunchPad;
 
     constructor(address _LaunchPad) {

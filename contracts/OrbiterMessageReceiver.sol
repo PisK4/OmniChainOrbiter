@@ -5,8 +5,13 @@ import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IOrbiterMessageReceiver} from "./interface/IOrbiterMessageReceiver.sol";
 
 abstract contract OrbiterMessageReceiver is IOrbiterMessageReceiver {
-    error AccessDenied();
+    error LandingPadAccessDenied();
     IMessageSpaceStation public LandingPad;
+
+    modifier onlyLandingPad() {
+        if (msg.sender != address(LandingPad)) revert LandingPadAccessDenied();
+        _;
+    }
 
     constructor(address _LandingPad) {
         LandingPad = IMessageSpaceStation(_LandingPad);
@@ -19,11 +24,7 @@ abstract contract OrbiterMessageReceiver is IOrbiterMessageReceiver {
         address sender,
         bytes calldata additionalInfo,
         bytes calldata message
-    ) external virtual {
-        if (msg.sender != address(LandingPad)) {
-            revert AccessDenied();
-        }
-
+    ) external virtual onlyLandingPad {
         _receiveMessage(srcChainId, nonce, sender, additionalInfo, message);
     }
 
