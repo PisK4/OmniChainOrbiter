@@ -49,18 +49,15 @@ library MessageMonitorLib {
     }
 
     function compare(
-        // mapping(uint64 => mapping(address => uint24)) storage self,
         mapping(bytes32 => uint24) storage self,
         uint64 chainId,
         address sender,
         uint24 nonceLaunch
     ) internal view returns (bool) {
-        // return self[chainId][sender] == nonceLaunch;
         return self[abi.encode(chainId, sender).hash()] == nonceLaunch;
     }
 
     function fetchMessageId(
-        // uint24 nonce,
         mapping(bytes32 => uint24) storage self,
         uint256 srcChainId,
         uint64 destChainId,
@@ -92,6 +89,14 @@ library MessageMonitorLib {
     ) internal pure returns (bytes32[] memory) {
         bytes32[] memory messageIds = new bytes32[](length);
         return messageIds;
+    }
+
+    function fetchNonce(
+        mapping(bytes32 => uint24) storage self,
+        uint64 chainId,
+        address sender
+    ) internal view returns (uint24) {
+        return self[abi.encode(chainId, sender).hash()];
     }
 
     function activateArbitrarySig(

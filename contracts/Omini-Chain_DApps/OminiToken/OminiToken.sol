@@ -61,6 +61,7 @@ contract OminiToken is
         address toAddress,
         uint256 amount
     ) public override onlyLandingPad {
+        require(false);
         _mint(toAddress, amount);
     }
 
@@ -160,11 +161,11 @@ contract OminiToken is
 
         LaunchPad.Launch{value: msg.value}(
             IMessageSpaceStation.launchSingleMsgParams(
-                destChainId,
                 uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                 uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
-                msg.sender,
                 DEFAULT_RELAYER,
+                msg.sender,
+                destChainId,
                 new bytes(0),
                 abi.encodePacked(
                     MessageTypeLib.ARBITRARY_ACTIVATE,
@@ -201,11 +202,11 @@ contract OminiToken is
         return
             LaunchPad.FetchProtocolFee(
                 IMessageSpaceStation.launchMultiMsgParams(
-                    destChainId,
                     uint64(block.timestamp + OMINI_MINIMAL_ARRIVAL_TIME),
                     uint64(block.timestamp + OMINI_MAXIMAL_ARRIVAL_TIME),
-                    msg.sender,
                     DEFAULT_RELAYER,
+                    msg.sender,
+                    destChainId,
                     new bytes[](0),
                     PacketMessages(mode, gasLimit, targetContract, message)
                 )

@@ -13,11 +13,12 @@ import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
+import "hardhat/console.sol";
+
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
 contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
-    // using MessageMonitorLib for mapping(uint64 => mapping(address => uint24));
     using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
@@ -49,7 +50,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         address trustedSequencerAddr,
         address paymentSystemAddr
     ) payable Ownable(msg.sender) {
-        configTrustedSequencer(trustedSequencerAddr, true);
+        ConfigTrustedSequencer(trustedSequencerAddr, true);
         paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
     }
 
@@ -107,12 +108,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         _;
     }
 
-    /// @notice LaunchPad is the function that user or DApps send cross-chain message to orther chain
-    ///         Once the message is sent, the Relay will validate the message and send it to the target chain
-    /// @dev the arguments of the function is packed in the launchMultiMsgParams struct
-    ///      message won't be sent if the message is not valid or Protocol fee is not matched
-    /// @param params the cross-chain needed params struct
-    /// @return messageId the message id of the message
     function Launch(
         launchMultiMsgParams calldata params
     )
@@ -126,10 +121,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         )
         returns (bytes32[] memory messageId)
     {
-        // if (msg.value < FetchProtocolFee(params)) {
-        //     revert Errors.ValueNotMatched();
-        // }
-
         if (params.message.length == 0) {
             revert Errors.InvalidMessage();
         }
@@ -170,10 +161,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         )
         returns (bytes32 messageId)
     {
-        // if (msg.value < FetchProtocolFee(params)) {
-        //     revert Errors.ValueNotMatched();
-        // }
-
         messageId = nonceLaunch.handling(
             block.chainid,
             params.destChainld,
@@ -206,11 +193,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
     }
 
-    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
-    /// @param mptRoot the merkle patricia tree root of all message
-    /// @param aggregatedEarlistArrivalTime the earlist arrival time of all message
-    /// @param aggregatedLatestArrivalTime the latest arrival time of all message
-    /// @param params the cross-chain needed params struct
     function Landing(
         bytes32 mptRoot,
         uint64 aggregatedEarlistArrivalTime,
@@ -245,7 +227,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
             bytes1 messageType = params[i].message.fetchMessageType();
             if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
-                params[i].message.activateArbitrarySig();
+                (bool _success, ) = params[i].message.activateArbitrarySig();
+                console.log("_success:", _success);
             } else if (messageType == MessageTypeLib.MESSAGE_POST) {
                 // TODO: handle mail message
             } else {
@@ -255,8 +238,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
     }
 
-    /// @dev Only owner can call this function to stop or restart the engine
-    /// @param _isPause true is stop, false is start
     function Pause(bool _isPause) external override onlyOwner {
         if (_isPause) {
             isPause = MessageMonitorLib.ENGINE_STOP;
@@ -283,10 +264,6 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         emit PaymentSystemChanging(paymentSystemAddress);
     }
 
-    /// @dev feel free to call this function before pass message to the Station,
-    ///      this method will return the protocol fee that the message need to pay, longer message will pay more
-    /// @param params the cross-chain needed params struct
-    /// @return protocol fee, the unit is wei
     function FetchProtocolFee(
         launchMultiMsgParams calldata params
     ) public view override returns (uint256) {
@@ -305,11 +282,25 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         return paymentSystem.fetchProtocolFee_(params);
     }
 
-    function configTrustedSequencer(
+    function ConfigTrustedSequencer(
         address trustedSequencerAddr,
         bool state
     ) public override onlyOwner {
         trustedSequencer[trustedSequencerAddr] = state;
+    }
+
+    function GetNonceLaunch(
+        uint64 chainId,
+        address sender
+    ) external view override returns (uint24) {
+        return nonceLaunch.fetchNonce(chainId, sender);
+    }
+
+    function GetNonceLanding(
+        uint64 chainId,
+        address sender
+    ) external view override returns (uint24) {
+        return nonceLanding.fetchNonce(chainId, sender);
     }
 
     /// @notice each message will be sent to corresponding chain

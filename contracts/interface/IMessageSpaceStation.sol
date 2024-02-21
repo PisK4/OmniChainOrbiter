@@ -3,24 +3,24 @@ pragma solidity ^0.8.23;
 import {IOrbiterMessageEmitter} from "./IOrbiterMessageEmitter.sol";
 
 interface IMessageSpaceStation {
-    struct launchMultiMsgParams {
-        uint64[] destChainld;
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        address sender;
-        address relayer;
-        bytes[] aditionParams;
-        bytes[] message;
-    }
-
     struct launchSingleMsgParams {
-        uint64 destChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
-        address sender;
         address relayer;
+        address sender;
+        uint64 destChainld;
         bytes aditionParams;
         bytes message;
+    }
+
+    struct launchMultiMsgParams {
+        uint64 earlistArrivalTime;
+        uint64 latestArrivalTime;
+        address relayer;
+        address sender;
+        uint64[] destChainld;
+        bytes[] aditionParams;
+        bytes[] message;
     }
 
     struct paramsLanding {
@@ -54,6 +54,12 @@ interface IMessageSpaceStation {
     event EngineStatusRefreshing(bool isPause);
     event PaymentSystemChanging(address paymentSystemAddress);
 
+    /// @notice LaunchPad is the function that user or DApps send cross-chain message to orther chain
+    ///         Once the message is sent, the Relay will validate the message and send it to the target chain
+    /// @dev the arguments of the function is packed in the launchMultiMsgParams struct
+    ///      message won't be sent if the message is not valid or Protocol fee is not matched
+    /// @param params the cross-chain needed params struct
+    /// @return messageId the message id of the message
     function Launch(
         launchMultiMsgParams calldata params
     ) external payable returns (bytes32[] memory messageId);
@@ -62,6 +68,12 @@ interface IMessageSpaceStation {
         launchSingleMsgParams calldata params
     ) external payable returns (bytes32 messageId);
 
+    /// @notice batch landing message to the chain, execute the landing message
+    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
+    /// @param mptRoot the merkle patricia trie root of the message
+    /// @param aggregatedEarlistArrivalTime the earlist arrival time of the message
+    /// @param aggregatedLatestArrivalTime the latest arrival time of the message
+    /// @param params the landing message params
     function Landing(
         bytes32 mptRoot,
         uint64 aggregatedEarlistArrivalTime,
@@ -69,6 +81,12 @@ interface IMessageSpaceStation {
         paramsLanding[] calldata params
     ) external payable;
 
+    /// @notice batch landing message to the chain, only post the landing message to the chain
+    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
+    /// @param mptRoot the merkle patricia trie root of the message
+    /// @param aggregatedEarlistArrivalTime the earlist arrival time of the message
+    /// @param aggregatedLatestArrivalTime the latest arrival time of the message
+    /// @param params the landing message params
     function Landing(
         bytes32 mptRoot,
         uint64 aggregatedEarlistArrivalTime,
@@ -76,12 +94,22 @@ interface IMessageSpaceStation {
         paramsBatchLanding[] calldata params
     ) external;
 
+    /// @dev Only owner can call this function to stop or restart the engine
+    /// @param _isPause true is stop, false is start
     function Pause(bool _isPause) external;
 
+    /// @dev withdraw the protocol fee from the contract, only owner can call this function
+    /// @param amount the amount of the withdraw protocol fee
     function Withdarw(uint256 amount) external;
 
+    /// @dev set the payment system address, only owner can call this function
+    /// @param paymentSystemAddress the address of the payment system
     function SetPaymentSystem(address paymentSystemAddress) external;
 
+    /// @dev feel free to call this function before pass message to the Station,
+    ///      this method will return the protocol fee that the message need to pay, longer message will pay more
+    /// @param params the cross-chain needed params struct
+    /// @return protocol fee, the unit is wei
     function FetchProtocolFee(
         launchMultiMsgParams calldata params
     ) external view returns (uint256);
@@ -94,8 +122,27 @@ interface IMessageSpaceStation {
         IOrbiterMessageEmitter.activateRawMsg calldata params
     ) external view returns (uint256);
 
-    function configTrustedSequencer(
+    /// @dev config the trusted sequencer address, only owner can call this function
+    /// @param trustedSequencerAddr the address of the trusted sequencer
+    /// @param state true is add, false is remove
+    function ConfigTrustedSequencer(
         address trustedSequencerAddr,
         bool state
     ) external;
+
+    /// @dev get the message launch nonce of the sender on the specific chain
+    /// @param chainId the chain id of the sender
+    /// @param sender the address of the sender
+    function GetNonceLaunch(
+        uint64 chainId,
+        address sender
+    ) external view returns (uint24);
+
+    /// @dev get the message landing nonce of the sender on the specific chain
+    /// @param chainId the chain id of the sender
+    /// @param sender the address of the sender
+    function GetNonceLanding(
+        uint64 chainId,
+        address sender
+    ) external view returns (uint24);
 }

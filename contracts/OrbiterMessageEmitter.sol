@@ -29,11 +29,11 @@ abstract contract OrbiterMessageEmitter is IOrbiterMessageEmitter {
     {
         return
             IMessageSpaceStation.launchMultiMsgParams(
-                rawMsg.destChainld,
                 rawMsg.earlistArrivalTime,
                 rawMsg.latestArrivalTime,
-                rawMsg.sender,
                 rawMsg.relayer,
+                rawMsg.sender,
+                rawMsg.destChainld,
                 rawMsg.aditionParams,
                 PacketMessages(
                     rawMsg.mode,
