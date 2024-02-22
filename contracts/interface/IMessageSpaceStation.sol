@@ -94,6 +94,10 @@ interface IMessageSpaceStation {
         paramsBatchLanding[] calldata params
     ) external;
 
+    /// @dev for sequencer to simulate the landing message, call this function before call Landing
+    /// @param params the landing message params
+    /// check the revert message "SimulateFailed" to get the result of the simulation
+    /// for example, if the result is [true, false, true], it means the first and third message is valid, the second message is invalid
     function SimulateLanding(paramsLanding[] calldata params) external;
 
     /// @dev Only owner can call this function to stop or restart the engine

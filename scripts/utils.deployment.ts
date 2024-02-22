@@ -43,11 +43,29 @@ export async function deployOmniToken(
   );
   await OmniToken.waitForDeployment();
 
+  const deploymentData = await new OmniToken__factory(
+    signer
+  ).getDeployTransaction(
+    args.name,
+    args.symbol,
+    args.initialSupply,
+    args.LaunchPad,
+    args.LandingPad,
+    args.defaultRelayer
+  );
+
+  const estimateGas = await signer.estimateGas({
+    to: ethers.ZeroAddress,
+    data: deploymentData.data,
+  });
+
   console.log(
     "OmniToken",
     args.symbol,
     "deployed to:",
-    await OmniToken.getAddress()
+    await OmniToken.getAddress(),
+    "deploye gasUsed:",
+    estimateGas.toString()
   );
 
   return OmniToken;
@@ -60,11 +78,23 @@ export async function deployMessageSpaceStation(
   const messageSpaceStation = await new MessageSpaceStation__factory(
     signer
   ).deploy(args.owner, args.paymentSystem, 1);
+
   await messageSpaceStation.waitForDeployment();
+
+  const deploymentData = await new MessageSpaceStation__factory(
+    signer
+  ).getDeployTransaction(args.owner, args.paymentSystem, 1);
+
+  const estimateGas = await signer.estimateGas({
+    to: ethers.ZeroAddress,
+    data: deploymentData.data,
+  });
 
   console.log(
     "MessageSpaceStation deployed to:",
-    await messageSpaceStation.getAddress()
+    await messageSpaceStation.getAddress(),
+    "deploye gasUsed:",
+    estimateGas.toString()
   );
 
   return messageSpaceStation;
