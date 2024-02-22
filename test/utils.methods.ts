@@ -116,3 +116,21 @@ export async function relayerMessage(
   gasMonitor.push(await calculateTxGas(tx, "relayerMessage", true));
   console.table(gasMonitor);
 }
+
+export async function simulateLanding(
+  OrbiterStation: MessageSpaceStation,
+  relayer: HardhatEthersSigner,
+  params: IMessageSpaceStation.ParamsLandingStruct[]
+) {
+  const LandingPad: MessageSpaceStation = OrbiterStation.connect(relayer);
+
+  try {
+    await LandingPad.SimulateLanding.estimateGas(params);
+  } catch (e: any) {
+    const error = e.message.match(/SimulateFailed\(\[(\w+)\]\)/);
+    const result = error[1]
+      .split(",")
+      .map((v: string) => (v === "true" ? 1 : 0));
+    console.log("SimulateLanding result:", result);
+  }
+}

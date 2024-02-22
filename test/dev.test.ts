@@ -23,7 +23,11 @@ import {
   BigNumberish,
 } from "ethers";
 import { calculateTxGas } from "../scripts/utils";
-import { bridgeTransfer, relayerMessage } from "../test/utils.methods";
+import {
+  bridgeTransfer,
+  relayerMessage,
+  simulateLanding,
+} from "../test/utils.methods";
 import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
@@ -128,6 +132,10 @@ describe("OrbiterStation", () => {
     };
 
     await mine(600);
+
+    await simulateLanding(OrbiterStationChainB, chainBDeployer, [
+      LandingParams,
+    ]);
 
     await relayerMessage(OrbiterStationChainB, chainBDeployer, {
       mptRoot: ethers.keccak256(ethers.randomBytes(32)) as BytesLike,

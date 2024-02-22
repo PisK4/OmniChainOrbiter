@@ -16,4 +16,5 @@ library Errors {
     error DuplicatedValue();
     error ArrivalTimeNotMakeSense();
     error LandingPadOccupied();
+    error SimulateFailed(bool[] results);
 }

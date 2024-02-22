@@ -94,6 +94,8 @@ interface IMessageSpaceStation {
         paramsBatchLanding[] calldata params
     ) external;
 
+    function SimulateLanding(paramsLanding[] calldata params) external;
+
     /// @dev Only owner can call this function to stop or restart the engine
     /// @param stop true is stop, false is start
     function PauseEngine(bool stop) external;

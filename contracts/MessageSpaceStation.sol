@@ -233,20 +233,35 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
                 revert Errors.NonceNotMatched();
             }
             nonceLanding.update(uint64(block.chainid), params[i].sender);
-
-            bytes1 messageType = params[i].message.fetchMessageType();
-            if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
-                (bool _success, ) = params[i].message.activateArbitrarySig();
-                // TODO: handle failed message
-                if (!_success) {
-                    //
-                }
-            } else if (messageType == MessageTypeLib.MESSAGE_POST) {
-                // TODO: handle mail message
-            } else {
-                defaultLandingHandler.handleLandingParams(params[i]);
-            }
+            _handleInteractiveMessage(params[i]);
             emit SuccessfulLanding(params[i].messgeId, params[i]);
+        }
+    }
+
+    function SimulateLanding(
+        paramsLanding[] calldata params
+    ) external override {
+        bool[] memory success = new bool[](params.length);
+        for (uint256 i = 0; i < params.length; i++) {
+            success[i] = _handleInteractiveMessage(params[i]);
+        }
+        revert Errors.SimulateFailed(success);
+    }
+
+    function _handleInteractiveMessage(
+        paramsLanding calldata params
+    ) internal returns (bool success) {
+        bytes1 messageType = params.message.fetchMessageType();
+        if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
+            (success, ) = params.message.activateArbitrarySig();
+            // TODO: handle failed message
+            if (!success) {
+                //
+            }
+        } else if (messageType == MessageTypeLib.MESSAGE_POST) {
+            // TODO: handle mail message
+        } else {
+            defaultLandingHandler.handleLandingParams(params);
         }
     }
 
