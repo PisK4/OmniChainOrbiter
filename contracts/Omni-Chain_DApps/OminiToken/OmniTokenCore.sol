@@ -40,8 +40,7 @@ abstract contract OmniTokenCore is
     function mint(
         address toAddress,
         uint256 amount
-    ) public override onlyLandingPad {
-        // require(false);
+    ) public virtual override onlyLandingPad {
         _mint(toAddress, amount);
     }
 

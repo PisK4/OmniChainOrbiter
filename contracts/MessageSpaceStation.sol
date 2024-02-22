@@ -228,7 +228,10 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             bytes1 messageType = params[i].message.fetchMessageType();
             if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
                 (bool _success, ) = params[i].message.activateArbitrarySig();
-                console.log("_success:", _success);
+                // TODO: handle failed message
+                if (!_success) {
+                    //
+                }
             } else if (messageType == MessageTypeLib.MESSAGE_POST) {
                 // TODO: handle mail message
             } else {
