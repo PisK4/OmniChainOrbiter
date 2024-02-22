@@ -64,7 +64,7 @@ export async function deployOmniToken(
     args.symbol,
     "deployed to:",
     await OmniToken.getAddress(),
-    "deploye gasUsed:",
+    "deploy gasUsed:",
     estimateGas.toString()
   );
 
@@ -93,7 +93,7 @@ export async function deployMessageSpaceStation(
   console.log(
     "MessageSpaceStation deployed to:",
     await messageSpaceStation.getAddress(),
-    "deploye gasUsed:",
+    "deploy gasUsed:",
     estimateGas.toString()
   );
 
