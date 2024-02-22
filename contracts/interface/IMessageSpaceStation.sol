@@ -8,7 +8,7 @@ interface IMessageSpaceStation {
         uint64 latestArrivalTime;
         address relayer;
         address sender;
-        uint64 destChainld;
+        uint16 destChainld;
         bytes aditionParams;
         bytes message;
     }
@@ -18,13 +18,13 @@ interface IMessageSpaceStation {
         uint64 latestArrivalTime;
         address relayer;
         address sender;
-        uint64[] destChainld;
+        uint16[] destChainld;
         bytes[] aditionParams;
         bytes[] message;
     }
 
     struct paramsLanding {
-        uint64 srcChainld;
+        uint16 srcChainld;
         uint24 nonceLandingCurrent;
         address sender;
         uint256 value;
@@ -33,7 +33,7 @@ interface IMessageSpaceStation {
     }
 
     struct paramsBatchLanding {
-        uint64 srcChainld;
+        uint16 srcChainld;
         address sender;
         bytes32 messgeId;
     }

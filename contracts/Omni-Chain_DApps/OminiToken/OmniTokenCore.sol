@@ -21,7 +21,7 @@ abstract contract OmniTokenCore is
     error InvalidData();
 
     // mirror OmniToken : mirrorToken[chainId] = address
-    mapping(uint64 => address) public mirrorToken;
+    mapping(uint16 => address) public mirrorToken;
 
     constructor(
         string memory _name,
@@ -66,7 +66,7 @@ abstract contract OmniTokenCore is
     }
 
     function bridgeTransfer(
-        uint64 destChainId,
+        uint16 destChainId,
         address receiver,
         uint256 amount
     ) external payable override {
@@ -75,7 +75,7 @@ abstract contract OmniTokenCore is
     }
 
     function setMirrorToken(
-        uint64 chainId,
+        uint16 chainId,
         address tokenAddress
     ) external onlyOwner {
         mirrorToken[chainId] = tokenAddress;
@@ -124,7 +124,7 @@ abstract contract OmniTokenCore is
     }
 
     function bridgeTransferHandler(
-        uint64 destChainId,
+        uint16 destChainId,
         address receiver,
         uint256 amount
     ) public payable virtual {
@@ -150,7 +150,7 @@ abstract contract OmniTokenCore is
     /// @dev if your token would charge a extra fee, you can override this function
     /// @return the fee of the bridge transfer
     function fetchOmniTokenTransferFee(
-        uint64[] calldata destChainId,
+        uint16[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
     ) external view virtual override returns (uint256) {
@@ -183,7 +183,7 @@ abstract contract OmniTokenCore is
     }
 
     function _allocMemory(
-        uint64[] calldata destChainId,
+        uint16[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
     )

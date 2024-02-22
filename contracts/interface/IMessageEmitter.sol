@@ -17,7 +17,7 @@ interface IMessageEmitter {
     function SELECTED_RELAYER() external view returns (address);
 
     struct activateRawMsg {
-        uint64[] destChainld;
+        uint16[] destChainld;
         uint64 earlistArrivalTime;
         uint64 latestArrivalTime;
         address sender;
