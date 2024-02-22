@@ -146,7 +146,7 @@ interface IMessageSpaceStation {
     /// @param chainId the chain id of the sender
     /// @param sender the address of the sender
     function GetNonceLaunch(
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) external view returns (uint24);
 
@@ -154,7 +154,7 @@ interface IMessageSpaceStation {
     /// @param chainId the chain id of the sender
     /// @param sender the address of the sender
     function GetNonceLanding(
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) external view returns (uint24);
 

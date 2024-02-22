@@ -232,7 +232,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             ) {
                 revert Errors.NonceNotMatched();
             }
-            nonceLanding.update(uint64(block.chainid), params[i].sender);
+            nonceLanding.update(ChainId, params[i].sender);
             _handleInteractiveMessage(params[i]);
             emit SuccessfulLanding(params[i].messgeId, params[i]);
         }
@@ -317,14 +317,14 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function GetNonceLaunch(
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) external view override returns (uint24) {
         return nonceLaunch.fetchNonce(chainId, sender);
     }
 
     function GetNonceLanding(
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) external view override returns (uint24) {
         return nonceLanding.fetchNonce(chainId, sender);

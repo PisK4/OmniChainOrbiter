@@ -29,7 +29,7 @@ contract NexusRelayer is INexusRelayer, Ownable {
             abi.encode(params).hash(),
             launchParamsSignatures
         );
-        // TODO: register validators
+        // TODO: check if the validators are registered
         (validators);
         bytes32[] memory leaves = new bytes32[](params.length);
         for (uint256 i = 0; i < params.length; i++) {
@@ -46,7 +46,6 @@ contract NexusRelayer is INexusRelayer, Ownable {
     }
 
     function _validateSignature(
-        // IMessageSpaceStation.launchMultiMsgParams calldata params,
         bytes32 encodedParams,
         bytes[] calldata launchParamsSignatures
     ) internal pure returns (address[] memory) {

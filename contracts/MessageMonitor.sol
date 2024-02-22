@@ -18,7 +18,7 @@ library MessageMonitorLib {
 
     function update(
         mapping(bytes32 => uint24) storage self,
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) internal {
         self[abi.encode(chainId, sender).hash()]++;
@@ -33,7 +33,7 @@ library MessageMonitorLib {
 
     function updates(
         mapping(bytes32 => uint24) storage self,
-        uint64 chainId,
+        uint16 chainId,
         address sender,
         uint24 updateTimes
     ) internal {
@@ -93,7 +93,7 @@ library MessageMonitorLib {
 
     function fetchNonce(
         mapping(bytes32 => uint24) storage self,
-        uint64 chainId,
+        uint16 chainId,
         address sender
     ) internal view returns (uint24) {
         return self[abi.encode(chainId, sender).hash()];
