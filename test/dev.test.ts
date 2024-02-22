@@ -124,6 +124,7 @@ describe("OrbiterStation", () => {
       sender: params.sender,
       value: 0,
       messgeId: messageId,
+      aditionParams: params.aditionParams,
       message: params.message,
     };
 

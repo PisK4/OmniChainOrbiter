@@ -225,9 +225,11 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             }
             nonceLanding.update(uint64(block.chainid), params[i].sender);
 
-            bytes1 messageType = params[i].message.fetchMessageType();
+            bytes1 messageType = params[i].aditionParams.fetchMessageType();
             if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
-                (bool _success, ) = params[i].message.activateArbitrarySig();
+                (bool _success, ) = params[i].message.activateArbitrarySig(
+                    params[i].aditionParams
+                );
                 console.log("_success:", _success);
             } else if (messageType == MessageTypeLib.MESSAGE_POST) {
                 // TODO: handle mail message

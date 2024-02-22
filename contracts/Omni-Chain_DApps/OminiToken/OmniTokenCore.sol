@@ -135,13 +135,12 @@ abstract contract OmniTokenCore is
                 SELECTED_RELAYER,
                 msg.sender,
                 destChainId,
-                new bytes(0),
                 abi.encodePacked(
                     MessageTypeLib.ARBITRARY_ACTIVATE,
                     uint256(uint160(mirrorToken[destChainId])),
-                    MAXIMAL_GAS_LIMIT,
-                    _fetchSignature(receiver, amount)
-                )
+                    MAXIMAL_GAS_LIMIT
+                ),
+                _fetchSignature(receiver, amount)
             )
         );
     }

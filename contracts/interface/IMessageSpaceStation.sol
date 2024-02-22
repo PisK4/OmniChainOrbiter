@@ -29,6 +29,7 @@ interface IMessageSpaceStation {
         address sender;
         uint256 value;
         bytes32 messgeId;
+        bytes aditionParams;
         bytes message;
     }
 

@@ -100,13 +100,10 @@ library MessageMonitorLib {
     }
 
     function activateArbitrarySig(
-        bytes calldata message
+        bytes calldata message,
+        bytes calldata aditionParams
     ) internal returns (bool success, bytes memory returnData) {
-        (
-            address contractAddr,
-            uint24 gasLimit,
-            bytes memory signature
-        ) = sliceMessage(message);
+        (address contractAddr, uint24 gasLimit) = sliceMessage(aditionParams);
 
         uint256 value = 0;
 
@@ -115,7 +112,7 @@ library MessageMonitorLib {
             gasLimit,
             value,
             returnDataSize,
-            signature
+            message
         );
     }
 
@@ -124,14 +121,17 @@ library MessageMonitorLib {
     )
         internal
         pure
-        returns (address contractAddr, uint24 gasLimit, bytes memory signature)
+        returns (
+            address contractAddr,
+            uint24 gasLimit /*, bytes memory signature*/
+        )
     {
         // note: byte1 ~ byte33 is contract address
         contractAddr = address(uint160(uint256(bytes32(message[1:33]))));
         // note: byte33 ~ byte35 is gasLimit
         gasLimit = (uint24(bytes3(message[33:36])));
-        /// note: byte36 ~ byteEnd is signature
-        signature = message[36:message.length];
+        // /// note: byte36 ~ byteEnd is signature
+        // signature = message[36:message.length];
     }
 
     function safeCall(
