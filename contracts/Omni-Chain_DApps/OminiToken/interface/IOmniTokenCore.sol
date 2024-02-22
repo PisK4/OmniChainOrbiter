@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-interface IOmniToken {
+interface IOmniTokenCore {
     function mint(address toAddress, uint256 amount) external;
 
     function bridgeTransfer(

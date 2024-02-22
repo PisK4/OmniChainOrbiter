@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IOmniToken} from "./interface/IOmniToken.sol";
+import {IOmniTokenCore} from "./interface/IOmniTokenCore.sol";
 import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 
 import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
@@ -15,7 +15,7 @@ abstract contract OmniTokenCore is
     ERC20,
     MessageEmitter,
     MessageReceiver,
-    IOmniToken,
+    IOmniTokenCore,
     Ownable
 {
     error InvalidData();
@@ -92,7 +92,7 @@ abstract contract OmniTokenCore is
         address toAddress,
         uint256 amount
     ) internal pure virtual returns (bytes memory signature) {
-        signature = abi.encodeCall(IOmniToken.mint, (toAddress, amount));
+        signature = abi.encodeCall(IOmniTokenCore.mint, (toAddress, amount));
     }
 
     function bridgeTransferHandler(
