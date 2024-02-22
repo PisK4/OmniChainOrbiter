@@ -4,6 +4,18 @@ pragma solidity ^0.8.23;
 import "./IMessageSpaceStation.sol";
 
 interface IMessageEmitter {
+    function MINIMAL_ARRIVAL_TIME() external view returns (uint64);
+
+    function MAXIMAL_ARRIVAL_TIME() external view returns (uint64);
+
+    function MINIMAL_GAS_LIMIT() external view returns (uint24);
+
+    function MAXIMAL_GAS_LIMIT() external view returns (uint24);
+
+    function BRIDGE_MODE() external view returns (bytes1);
+
+    function SELECTED_RELAYER() external view returns (address);
+
     struct activateRawMsg {
         uint64[] destChainld;
         uint64 earlistArrivalTime;

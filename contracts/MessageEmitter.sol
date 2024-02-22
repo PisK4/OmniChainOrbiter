@@ -7,21 +7,21 @@ import {Utils} from "./library/Utils.sol";
 
 abstract contract MessageEmitter is IMessageEmitter {
     /// @dev bellow are the default parameters for the OmniToken,
-    ///      we **strongely recommand** to override them in your own contract.
+    ///      we **strongely recommand** to use immutable variables to store these parameters
     /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
     /// @notice MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
-    /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for the cross-chain message
-    /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for the cross-chain message
+    /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for target chain excute cross-chain message
+    /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for target chain excute cross-chain message
     /// @notice BRIDGE_MODE the default mode for the cross-chain message,
     ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
     /// @notice SELECTED_RELAYER the default relayer for the cross-chain message
 
-    uint64 immutable MINIMAL_ARRIVAL_TIME;
-    uint64 immutable MAXIMAL_ARRIVAL_TIME;
-    uint24 immutable MINIMAL_GAS_LIMIT;
-    uint24 immutable MAXIMAL_GAS_LIMIT;
-    bytes1 immutable BRIDGE_MODE;
-    address immutable SELECTED_RELAYER;
+    uint64 public immutable override MINIMAL_ARRIVAL_TIME;
+    uint64 public immutable override MAXIMAL_ARRIVAL_TIME;
+    uint24 public immutable override MINIMAL_GAS_LIMIT;
+    uint24 public immutable override MAXIMAL_GAS_LIMIT;
+    bytes1 public immutable override BRIDGE_MODE;
+    address public immutable override SELECTED_RELAYER;
 
     IMessageSpaceStation public LaunchPad;
 
