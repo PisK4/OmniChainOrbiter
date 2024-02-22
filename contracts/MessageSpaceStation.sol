@@ -10,6 +10,7 @@ import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "./library/MessageTypeLib.sol";
+import {L2SupportLib} from "./library/L2SupportLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
@@ -28,30 +29,38 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     uint64 immutable MINIMAL_ARRIVAL_TIME = 3 minutes;
     uint64 immutable MAXIMAL_ARRIVAL_TIME = 30 days;
-    uint64 immutable UNIVERSE_CHAIN_ID = type(uint64).max - 1;
+    uint16 immutable UNIVERSE_CHAIN_ID = type(uint16).max - 1;
 
-    /// @dev trusted sequencer, we will execute the message from this address
-    mapping(address => bool) public trustedSequencer;
-    /// @dev handle default landing mode contract address
-    IDefaultLandingHandler public defaultLandingHandler;
-    /// @dev protocol fee payment system address
-    IMessagePaymentSystem public paymentSystem;
+    string public constant override Version = "v1.0.0";
+    uint16 public immutable override ChainId;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
-    uint8 public isPause;
+    uint8 public override isPaused;
+
     /// @dev reentrancy guard
     uint8 private _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
 
-    bytes32 public mptRoots;
+    /// @dev handle default landing mode contract address
+    IDefaultLandingHandler public defaultLandingHandler;
+
+    /// @dev protocol fee payment system address
+    IMessagePaymentSystem public paymentSystem;
+
+    /// @dev trusted sequencer, we will execute the message from this address
+    mapping(address => bool) public override TrustedSequencer;
+
+    bytes32 public override mptRoot;
 
     receive() external payable {}
 
     constructor(
         address trustedSequencerAddr,
-        address paymentSystemAddr
+        address paymentSystemAddr,
+        uint16 chainId
     ) payable Ownable(msg.sender) {
         ConfigTrustedSequencer(trustedSequencerAddr, true);
         paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
+        ChainId = chainId;
     }
 
     /// @notice if engine is stop, all message which pass to the Station will be revert
@@ -61,7 +70,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         uint64 latestArrivalTime,
         uint256 protocolFee
     ) {
-        if (isPause == MessageMonitorLib.ENGINE_STOP) {
+        if (isPaused == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
         }
 
@@ -80,7 +89,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     modifier landinglaunchEngineCheck() {
-        if (isPause == MessageMonitorLib.ENGINE_STOP) {
+        if (isPaused == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
         }
         if (_isLanding == MessageMonitorLib.LANDING_PAD_OCCUPIED) {
@@ -95,7 +104,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime
     ) {
-        if (trustedSequencer[msg.sender] != true) {
+        if (TrustedSequencer[msg.sender] != true) {
             revert Errors.AccessDenied();
         }
 
@@ -162,7 +171,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         returns (bytes32 messageId)
     {
         messageId = nonceLaunch.handling(
-            block.chainid,
+            ChainId,
             params.destChainld,
             params.sender,
             address(this)
@@ -173,7 +182,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     /// @notice batch landing message to the Station
     function Landing(
-        bytes32 mptRoot,
+        bytes32 mptRootNew,
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime,
         paramsBatchLanding[] calldata params
@@ -186,7 +195,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             aggregatedLatestArrivalTime
         )
     {
-        mptRoots = mptRoot;
+        mptRoot = mptRootNew;
 
         for (uint256 i = 0; i < params.length; i++) {
             emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
@@ -194,7 +203,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
     }
 
     function Landing(
-        bytes32 mptRoot,
+        bytes32 mptRootNew,
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime,
         paramsLanding[] calldata params
@@ -208,7 +217,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
             aggregatedLatestArrivalTime
         )
     {
-        mptRoots = mptRoot;
+        mptRoot = mptRootNew;
 
         for (uint256 i = 0; i < params.length; i++) {
             if (params[i].value < msg.value) {
@@ -241,13 +250,13 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
     }
 
-    function Pause(bool _isPause) external override onlyOwner {
-        if (_isPause) {
-            isPause = MessageMonitorLib.ENGINE_STOP;
+    function PauseEngine(bool stop) external override onlyOwner {
+        if (stop) {
+            isPaused = MessageMonitorLib.ENGINE_STOP;
         } else {
-            isPause = MessageMonitorLib.ENGINE_START;
+            isPaused = MessageMonitorLib.ENGINE_START;
         }
-        emit EngineStatusRefreshing(_isPause);
+        emit EngineStatusRefreshing(stop);
     }
 
     function Withdarw(uint256 amount) external override {
@@ -289,7 +298,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         address trustedSequencerAddr,
         bool state
     ) public override onlyOwner {
-        trustedSequencer[trustedSequencerAddr] = state;
+        TrustedSequencer[trustedSequencerAddr] = state;
     }
 
     function GetNonceLaunch(
@@ -364,7 +373,7 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLaunch.handling(
-                block.chainid,
+                ChainId,
                 params.destChainld[i],
                 params.sender,
                 address(this)
@@ -375,13 +384,13 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
 
     function _fetchMessageIdThenUpdateNonce(
         launchMultiMsgParams calldata params,
-        uint64 chainId,
+        uint16 chainId,
         uint256 loopMax
     ) private returns (bytes32[] memory) {
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLaunch.fetchMessageId(
-                block.chainid,
+                ChainId,
                 chainId,
                 params.sender,
                 address(this)
@@ -389,9 +398,5 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         }
         nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
         return messageId;
-    }
-
-    function Version() external pure override returns (string memory) {
-        return "1.0.0";
     }
 }

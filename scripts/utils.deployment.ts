@@ -59,7 +59,7 @@ export async function deployMessageSpaceStation(
 ): Promise<MessageSpaceStation> {
   const messageSpaceStation = await new MessageSpaceStation__factory(
     signer
-  ).deploy(args.owner, args.paymentSystem);
+  ).deploy(args.owner, args.paymentSystem, 1);
   await messageSpaceStation.waitForDeployment();
 
   console.log(

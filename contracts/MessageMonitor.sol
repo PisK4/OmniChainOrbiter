@@ -50,7 +50,7 @@ library MessageMonitorLib {
 
     function compare(
         mapping(bytes32 => uint24) storage self,
-        uint64 chainId,
+        uint16 chainId,
         address sender,
         uint24 nonceLaunch
     ) internal view returns (bool) {
@@ -59,8 +59,8 @@ library MessageMonitorLib {
 
     function fetchMessageId(
         mapping(bytes32 => uint24) storage self,
-        uint256 srcChainId,
-        uint64 destChainId,
+        uint16 srcChainId,
+        uint16 destChainId,
         address sender,
         address launchPad
     ) internal view returns (bytes32 messageId) {
@@ -72,8 +72,8 @@ library MessageMonitorLib {
 
     function handling(
         mapping(bytes32 => uint24) storage self,
-        uint256 srcChainId,
-        uint64 destChainId,
+        uint16 srcChainId,
+        uint16 destChainId,
         address sender,
         address launchPad
     ) internal returns (bytes32 messageId) {

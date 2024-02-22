@@ -70,12 +70,12 @@ interface IMessageSpaceStation {
 
     /// @notice batch landing message to the chain, execute the landing message
     /// @dev trusted sequencer will call this function to send cross-chain message to the Station
-    /// @param mptRoot the merkle patricia trie root of the message
+    /// @param mptRootNew the merkle patricia trie root of the message
     /// @param aggregatedEarlistArrivalTime the earlist arrival time of the message
     /// @param aggregatedLatestArrivalTime the latest arrival time of the message
     /// @param params the landing message params
     function Landing(
-        bytes32 mptRoot,
+        bytes32 mptRootNew,
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime,
         paramsLanding[] calldata params
@@ -83,20 +83,26 @@ interface IMessageSpaceStation {
 
     /// @notice batch landing message to the chain, only post the landing message to the chain
     /// @dev trusted sequencer will call this function to send cross-chain message to the Station
-    /// @param mptRoot the merkle patricia trie root of the message
+    /// @param mptRootNew the merkle patricia trie root of the message
     /// @param aggregatedEarlistArrivalTime the earlist arrival time of the message
     /// @param aggregatedLatestArrivalTime the latest arrival time of the message
     /// @param params the landing message params
     function Landing(
-        bytes32 mptRoot,
+        bytes32 mptRootNew,
         uint64 aggregatedEarlistArrivalTime,
         uint64 aggregatedLatestArrivalTime,
         paramsBatchLanding[] calldata params
     ) external;
 
     /// @dev Only owner can call this function to stop or restart the engine
-    /// @param _isPause true is stop, false is start
-    function Pause(bool _isPause) external;
+    /// @param stop true is stop, false is start
+    function PauseEngine(bool stop) external;
+
+    /// @notice return the status of the engine
+    /// @return 0x01 is stop, 0x02 is start
+    function isPaused() external view returns (uint8);
+
+    function mptRoot() external view returns (bytes32);
 
     /// @dev withdraw the protocol fee from the contract, only owner can call this function
     /// @param amount the amount of the withdraw protocol fee
@@ -146,5 +152,15 @@ interface IMessageSpaceStation {
         address sender
     ) external view returns (uint24);
 
+    /// @dev trusted sequencer, we will execute the message from this address
+    /// @return true is trusted sequencer, false is not
+    function TrustedSequencer(address) external view returns (bool);
+
+    /// @dev get the version of the Station
+    /// @return the version of the Station, like "v1.0.0"
     function Version() external view returns (string memory);
+
+    /// @dev get the chainId of current Station
+    /// @return chainId, defined in the L2SupportLib.sol
+    function ChainId() external view returns (uint16);
 }
