@@ -34,7 +34,7 @@ abstract contract OmniTokenCore is
         MessageReceiver(_LandingPad)
         Ownable(msg.sender)
     {
-        BRIDGE_MODE = MessageTypeLib.ARBITRARY_ACTIVATE;
+        defaultBridgeMode = MessageTypeLib.ARBITRARY_ACTIVATE;
     }
 
     function mint(
@@ -109,14 +109,14 @@ abstract contract OmniTokenCore is
         // bytes1[] memory mode = new bytes1[](1);
         // mode[0] = MessageTypeLib.ARBITRARY_ACTIVATE;
         // uint24[] memory gasLimit = new uint24[](1);
-        // gasLimit[0] = MINIMAL_GAS_LIMIT;
+        // gasLimit[0] = minGasLimit;
         // emit2LaunchPad(
         //     IMessageSpaceStation.launchMultiMsgParams(
         //         destChainIdArr,
-        //         uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
-        //         uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
+        //         uint64(block.timestamp + minArrivalTime),
+        //         uint64(block.timestamp + maxArrivalTime),
         //         msg.sender,
-        //         SELECTED_RELAYER,
+        //         selectedRelayer,
         //         new bytes[](0),
         //         PacketMessages(mode, gasLimit, targetContract, message)
         //     )
@@ -130,16 +130,16 @@ abstract contract OmniTokenCore is
     ) public payable virtual {
         emit2LaunchPad(
             IMessageSpaceStation.launchSingleMsgParams(
-                uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
-                uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
-                SELECTED_RELAYER,
+                uint64(block.timestamp + minArrivalTime),
+                uint64(block.timestamp + maxArrivalTime),
+                selectedRelayer,
                 msg.sender,
                 destChainId,
                 new bytes(0),
                 abi.encodePacked(
                     MessageTypeLib.ARBITRARY_ACTIVATE,
                     uint256(uint160(mirrorToken[destChainId])),
-                    MAXIMAL_GAS_LIMIT,
+                    maxGasLimit,
                     _fetchSignature(receiver, amount)
                 )
             )
@@ -171,9 +171,9 @@ abstract contract OmniTokenCore is
         return
             LaunchPad.EstimateFee(
                 IMessageSpaceStation.launchMultiMsgParams(
-                    uint64(block.timestamp + MINIMAL_ARRIVAL_TIME),
-                    uint64(block.timestamp + MAXIMAL_ARRIVAL_TIME),
-                    SELECTED_RELAYER,
+                    uint64(block.timestamp + minArrivalTime),
+                    uint64(block.timestamp + maxArrivalTime),
+                    selectedRelayer,
                     msg.sender,
                     destChainId,
                     new bytes[](0),
@@ -210,12 +210,12 @@ abstract contract OmniTokenCore is
 
         bytes1[] memory mode = new bytes1[](dataLength);
         for (uint256 i = 0; i < dataLength; i++) {
-            mode[i] = BRIDGE_MODE;
+            mode[i] = defaultBridgeMode;
         }
 
         uint24[] memory gasLimit = new uint24[](dataLength);
         for (uint256 i = 0; i < dataLength; i++) {
-            gasLimit[i] = MINIMAL_GAS_LIMIT;
+            gasLimit[i] = minGasLimit;
         }
 
         return (message, targetContract, mode, gasLimit);

@@ -145,4 +145,6 @@ interface IMessageSpaceStation {
         uint64 chainId,
         address sender
     ) external view returns (uint24);
+
+    function Version() external view returns (string memory);
 }

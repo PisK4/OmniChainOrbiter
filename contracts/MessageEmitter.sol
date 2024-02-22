@@ -8,20 +8,20 @@ import {Utils} from "./library/Utils.sol";
 abstract contract MessageEmitter is IMessageEmitter {
     /// @dev bellow are the default parameters for the OmniToken,
     ///      we **strongely recommand** to use immutable variables to store these parameters
-    /// @notice MINIMAL_ARRIVAL_TIME the minimal arrival time for the cross-chain message
-    /// @notice MAXIMAL_ARRIVAL_TIME the maximal arrival time for the cross-chain message
-    /// @notice MINIMAL_GAS_LIMIT the minimal gas limit for target chain excute cross-chain message
-    /// @notice MAXIMAL_GAS_LIMIT the maximal gas limit for target chain excute cross-chain message
-    /// @notice BRIDGE_MODE the default mode for the cross-chain message,
+    /// @notice minArrivalTime the minimal arrival time for the cross-chain message
+    /// @notice maxArrivalTime the maximal arrival time for the cross-chain message
+    /// @notice minGasLimit the minimal gas limit for target chain excute cross-chain message
+    /// @notice maxGasLimit the maximal gas limit for target chain excute cross-chain message
+    /// @notice defaultBridgeMode the default mode for the cross-chain message,
     ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
-    /// @notice SELECTED_RELAYER the default relayer for the cross-chain message
+    /// @notice selectedRelayer the default relayer for the cross-chain message
 
-    uint64 public immutable override MINIMAL_ARRIVAL_TIME;
-    uint64 public immutable override MAXIMAL_ARRIVAL_TIME;
-    uint24 public immutable override MINIMAL_GAS_LIMIT;
-    uint24 public immutable override MAXIMAL_GAS_LIMIT;
-    bytes1 public immutable override BRIDGE_MODE;
-    address public immutable override SELECTED_RELAYER;
+    uint64 public immutable override minArrivalTime;
+    uint64 public immutable override maxArrivalTime;
+    uint24 public immutable override minGasLimit;
+    uint24 public immutable override maxGasLimit;
+    bytes1 public immutable override defaultBridgeMode;
+    address public immutable override selectedRelayer;
 
     IMessageSpaceStation public LaunchPad;
 

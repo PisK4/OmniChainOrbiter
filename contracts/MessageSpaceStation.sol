@@ -387,4 +387,8 @@ contract MessageSpaceStation is IMessageSpaceStation, MessageMonitor, Ownable {
         nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
         return messageId;
     }
+
+    function Version() external pure override returns (string memory) {
+        return "1.0.0";
+    }
 }

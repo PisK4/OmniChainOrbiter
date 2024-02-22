@@ -12,11 +12,11 @@ contract OmniToken is OmniTokenCore {
         address _LandingPad,
         address _defaultRelayer
     ) OmniTokenCore(_name, _symbol, _LaunchPad, _LandingPad) {
-        MINIMAL_ARRIVAL_TIME = 3 minutes;
-        MAXIMAL_ARRIVAL_TIME = 30 days;
-        MINIMAL_GAS_LIMIT = 100000;
-        MAXIMAL_GAS_LIMIT = 500000;
-        SELECTED_RELAYER = _defaultRelayer;
+        minArrivalTime = 3 minutes;
+        maxArrivalTime = 30 days;
+        minGasLimit = 100000;
+        maxGasLimit = 500000;
+        selectedRelayer = _defaultRelayer;
         _mint(msg.sender, _initialSupply);
     }
 
