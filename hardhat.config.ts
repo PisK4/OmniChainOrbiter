@@ -4,10 +4,11 @@ import { config as dotenvConfig } from "dotenv";
 import { ethers } from "ethers";
 import { resolve } from "path";
 import "@nomicfoundation/hardhat-toolbox";
-import "@typechain/hardhat";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-ethers";
+import "@typechain/hardhat";
+import "@skybit/hardhat-yul";
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
@@ -38,6 +39,7 @@ export const chainIds = {
   sepolia: 11155111,
   goerli: 5,
   ganache: 1337,
+  localhost: 313371,
 };
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -60,6 +62,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break;
     case "ganache":
       jsonRpcUrl = "http://127.0.0.1:7545";
+      break;
+    case "localhost":
+      jsonRpcUrl = "http://127.0.0.1:8545";
       break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
@@ -129,21 +134,25 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   solidity: {
-    version: "0.8.23",
-    settings: {
-      metadata: {
-        // Not including the metadata hash
-        // https://github.com/paulrberg/hardhat-template/issues/31
-        bytecodeHash: "none",
+    compilers: [
+      {
+        version: "0.8.23",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/hardhat-template/issues/31
+            bytecodeHash: "none",
+          },
+          // Disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 99999,
+          },
+          viaIR: false,
+        },
       },
-      // Disable the optimizer when debugging
-      // https://hardhat.org/hardhat-network/#solidity-optimizer-support
-      optimizer: {
-        enabled: true,
-        runs: 99999,
-      },
-      viaIR: false,
-    },
+    ],
   },
   mocha: {
     timeout: 4000000000,

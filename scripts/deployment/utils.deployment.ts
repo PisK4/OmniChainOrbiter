@@ -18,7 +18,7 @@ import {
   Helper__factory,
   MessagePaymentSystem,
   MessagePaymentSystem__factory,
-} from "../typechain-types";
+} from "../../typechain-types";
 
 interface OmniTokenConstructorArgs {
   name: string;

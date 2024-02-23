@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
 import {OmniTokenCore} from "./OmniTokenCore.sol";
 
 contract OmniToken is OmniTokenCore {
@@ -11,7 +12,15 @@ contract OmniToken is OmniTokenCore {
         address _LaunchPad,
         address _LandingPad,
         address _defaultRelayer
-    ) OmniTokenCore(_name, _symbol, _LaunchPad, _LandingPad) {
+    )
+        OmniTokenCore(
+            _name,
+            _symbol,
+            _LaunchPad,
+            _LandingPad,
+            MessageTypeLib.ARBITRARY_ACTIVATE
+        )
+    {
         minArrivalTime = 3 minutes;
         maxArrivalTime = 30 days;
         minGasLimit = 100000;

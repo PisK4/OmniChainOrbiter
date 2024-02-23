@@ -6,8 +6,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOmniTokenCore} from "./interface/IOmniTokenCore.sol";
 import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 
-import {MessageTypeLib} from "../../library/MessageTypeLib.sol";
-
 import {MessageEmitter} from "../../MessageEmitter.sol";
 import {MessageReceiver} from "../../MessageReceiver.sol";
 
@@ -27,14 +25,15 @@ abstract contract OmniTokenCore is
         string memory _name,
         string memory _symbol,
         address _LaunchPad,
-        address _LandingPad
+        address _LandingPad,
+        bytes1 _defaultBridgeMode
     )
         ERC20(_name, _symbol)
         MessageEmitter(_LaunchPad)
         MessageReceiver(_LandingPad)
         Ownable(msg.sender)
     {
-        defaultBridgeMode = MessageTypeLib.ARBITRARY_ACTIVATE;
+        defaultBridgeMode = _defaultBridgeMode;
     }
 
     function mint(
@@ -136,7 +135,7 @@ abstract contract OmniTokenCore is
                 destChainId,
                 new bytes(0),
                 abi.encodePacked(
-                    MessageTypeLib.ARBITRARY_ACTIVATE,
+                    defaultBridgeMode,
                     uint256(uint160(mirrorToken[destChainId])),
                     maxGasLimit,
                     _fetchSignature(receiver, amount)

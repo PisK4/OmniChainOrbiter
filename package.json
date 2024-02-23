@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@SKYBITDev3/ZeframLou-create3-factory": "https://github.com/SKYBITDev3/ZeframLou-create3-factory#3a8db987b8a6e1b63845a0ee1d0206cb4b5748f9",
+    "@Vectorized/solady": "https://github.com/Vectorized/solady#03f3fd05fb1da76edc4df83ae6bf32a842c15f12",
+    "@axelar-network/axelar-gmp-sdk-solidity": "^5.3.3",
+    "@skybit/hardhat-yul": "^4.0.3",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
@@ -21,6 +25,9 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1",
+    "@openzeppelin/contracts-upgradeable": "^5.0.1",
+    "@openzeppelin/hardhat-upgrades": "^3.0.2",
+    "@thundernetworkrad/readline-sync": "^2023.3.13-1",
     "dotenv": "^16.0.3"
   }
 }

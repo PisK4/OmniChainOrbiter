@@ -32,7 +32,7 @@ import {
   deployMessagePaymentSystem,
   deployMessageSpaceStation,
   deployOmniToken,
-} from "../scripts/utils.deployment";
+} from "../scripts/deployment/utils.deployment";
 import { expect } from "chai";
 
 describe("OrbiterStation", () => {
