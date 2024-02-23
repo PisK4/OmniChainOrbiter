@@ -12,18 +12,27 @@ struct Point {
     uint y;
 }
 
-contract TESTERC20UGV1 is Initializable, ERC20Upgradeable, AccessControlUpgradeable, ERC20PermitUpgradeable, UUPSUpgradeable {
+contract TESTERC20UGV1 is
+    Initializable,
+    ERC20Upgradeable,
+    AccessControlUpgradeable,
+    ERC20PermitUpgradeable,
+    UUPSUpgradeable
+{
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    mapping (address=>Point) public points;
+    mapping(address => Point) public points;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address adminAddress, Point memory _point) initializer public {
+    function initialize(
+        address adminAddress,
+        Point memory _point
+    ) public initializer {
         __ERC20_init("Token 8942", "TOKEN8942");
         __AccessControl_init();
         __ERC20Permit_init("Token 8942");
@@ -40,14 +49,11 @@ contract TESTERC20UGV1 is Initializable, ERC20Upgradeable, AccessControlUpgradea
         _mint(to, amount);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyRole(UPGRADER_ROLE)
-        override
-    {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyRole(UPGRADER_ROLE) {}
 
     function getV() public pure returns (uint8) {
-      return 1;
+        return 1;
     }
-
 }

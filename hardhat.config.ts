@@ -8,6 +8,7 @@ import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-ethers";
 import "@typechain/hardhat";
+import "@openzeppelin/hardhat-upgrades";
 import "@skybit/hardhat-yul";
 
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
