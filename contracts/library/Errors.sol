@@ -17,4 +17,5 @@ library Errors {
     error ArrivalTimeNotMakeSense();
     error LandingPadOccupied();
     error SimulateFailed(bool[] results);
+    error NotImplement();
 }

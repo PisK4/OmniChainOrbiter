@@ -6,6 +6,7 @@ import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
 
 abstract contract MessageReceiver is IMessageReceiver {
     error LandingPadAccessDenied();
+    error NotImplement();
     IMessageSpaceStation public LandingPad;
 
     modifier onlyLandingPad() {
@@ -40,5 +41,8 @@ abstract contract MessageReceiver is IMessageReceiver {
         address sender,
         bytes calldata additionalInfo,
         bytes calldata message
-    ) internal virtual {}
+    ) internal virtual {
+        (srcChainId, nonce, sender, additionalInfo, message);
+        revert NotImplement();
+    }
 }

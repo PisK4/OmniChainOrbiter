@@ -54,7 +54,7 @@ abstract contract OmniTokenCore is
         address sender,
         bytes calldata additionalInfo,
         bytes calldata message
-    ) internal override {
+    ) internal virtual override {
         (srcChainId, nonce, sender, additionalInfo);
         // decode the message, args is for mint(address toAddress, uint256 amount)
         (address toAddress, uint256 amount) = abi.decode(
@@ -68,7 +68,7 @@ abstract contract OmniTokenCore is
         uint16 destChainId,
         address receiver,
         uint256 amount
-    ) external payable override {
+    ) external payable virtual override {
         _tokenHandlingStrategy(amount);
         bridgeTransferHandler(destChainId, receiver, amount);
     }
