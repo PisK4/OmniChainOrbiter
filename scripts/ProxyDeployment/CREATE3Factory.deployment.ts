@@ -1,12 +1,70 @@
-import { ethers, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import fs from "fs";
 import path from "path";
+import { assert } from "console";
 
 const pathDeployedContracts = path.join(__dirname, "../deployedContracts.json");
 const deployedContracts = require(pathDeployedContracts);
 const factoryToDeploy = `SKYBITLite`;
 const isDeployEnabled = true; // toggle in case you do deployment and verification separately.
 const isVerifyEnabled = true;
+
+export function getDeployedCreate3Factory(): {
+  name: string;
+  address: string;
+} {
+  const pathDeployedContracts = path.join(
+    __dirname,
+    "../deployedContracts.json"
+  );
+  const deployedContracts = require(pathDeployedContracts);
+
+  const CREATE3Factory = {
+    name: `SKYBITLite`,
+    address: deployedContracts.create3Factory,
+  }; // gas cost: 2117420
+
+  return CREATE3Factory;
+}
+
+export async function toCREATE3Deploy(
+  factory: any,
+  initializerArgs: any,
+  implAddress: string,
+  salt: string,
+  wallet: HardhatEthersSigner
+): Promise<any> {
+  const factoryToUse = getDeployedCreate3Factory();
+  const {
+    rootRequire,
+    printNativeCurrencyBalance,
+    verifyContract,
+  } = require(`./utils`);
+  const proxyContractName = `ERC1967Proxy`;
+  const cfProxy = await ethers.getContractFactory(proxyContractName); // got the artifacts locally from @openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol. The one in @openzeppelin/upgrades-core is old.
+  const fragment = factory.interface.getFunction(`initialize`)!;
+  const initializerData = factory.interface.encodeFunctionData(
+    fragment,
+    initializerArgs
+  );
+  const proxyConstructorArgs = [implAddress, initializerData];
+  const { getArtifactOfFactory, getDeployedAddress, CREATE3Deploy } =
+    rootRequire(`scripts/ProxyDeployment/CREATE3-deploy-functions.ts`);
+
+  const proxy = await CREATE3Deploy(
+    factoryToUse.name,
+    factoryToUse.address,
+    cfProxy,
+    proxyContractName,
+    proxyConstructorArgs,
+    salt,
+    wallet
+  );
+  // assert(!proxy);
+  await upgrades.forceImport(proxy.target, factory);
+  return proxy;
+}
 
 export async function deployCreate3Factory(): Promise<void> {
   const [wallet] = await ethers.getSigners();
