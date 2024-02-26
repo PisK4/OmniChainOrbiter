@@ -1,24 +1,20 @@
-// CHOOSE WHICH FACTORY YOU WANT TO USE:
-// const factoryToDeploy = `axelarnetwork`
-// const factoryToDeploy = `ZeframLou`
-// const factoryToDeploy = `SKYBITSolady`
+import { ethers, network } from "hardhat";
+import fs from "fs";
+import path from "path";
+
+const pathDeployedContracts = path.join(__dirname, "../deployedContracts.json");
+const deployedContracts = require(pathDeployedContracts);
 const factoryToDeploy = `SKYBITLite`;
-
 const isDeployEnabled = true; // toggle in case you do deployment and verification separately.
-
 const isVerifyEnabled = true;
 
-async function main() {
-  const { ethers, network } = require(`hardhat`);
+export async function deployCreate3Factory(): Promise<void> {
   const [wallet] = await ethers.getSigners();
   const balanceOfWallet = await ethers.provider.getBalance(wallet.address);
   console.log(
     `Using network: ${network.name} (${network.config.chainId}), account: ${
       wallet.address
-    } having ${ethers.formatUnits(
-      balanceOfWallet,
-      `ether`
-    )} of native currency, RPC url: ${network.config.url}`
+    } having ${ethers.formatUnits(balanceOfWallet, `ether`)} of native currency`
   );
 
   const create3FactoryArtifact = getCreate3FactoryArtifact(factoryToDeploy);
@@ -49,9 +45,15 @@ async function main() {
     const { verifyContract } = require(`./utils`);
     await verifyContract(address, []);
   } else console.log(`Verification on explorer skipped`);
+  deployedContracts.create3Factory = address;
+  fs.writeFileSync(
+    pathDeployedContracts,
+    JSON.stringify(deployedContracts, null, 2)
+  );
+  return address;
 }
 
-const getCreate3FactoryArtifact = (factory) => {
+const getCreate3FactoryArtifact = (factory: string) => {
   let compiledArtifactFilePath;
   switch (
     factory // Get hardhat's compiled artifact file first for comparison with saved copy
@@ -74,24 +76,21 @@ const getCreate3FactoryArtifact = (factory) => {
   return getSavedArtifactFile(factory, compiledArtifactFilePath);
 };
 
-const getGasLimit = (factory) => {
+const getGasLimit = (factory: string) => {
   switch (factory) {
     case `ZeframLou`:
       return 500000n; // Gas cost: 388999
-      break;
     case `axelarnetwork`:
       return 900000n; // Gas cost: 712665
-      break;
     case `SKYBITSolady`:
       return 350000n; // Gas cost: 247752
-      break;
     case `SKYBITLite`:
     default:
       return 100000n; // Gas cost: 78914
   }
 };
 
-main().catch((error) => {
+deployCreate3Factory().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

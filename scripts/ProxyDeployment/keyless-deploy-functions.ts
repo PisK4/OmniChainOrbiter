@@ -105,25 +105,25 @@ const getSavedArtifactFile = (contractName, compiledArtifactFilePath) => {
   const savedArtifactExists = existsSync(savedArtifactFilePath);
 
   let useSavedArtifact = true;
-  if (savedArtifactExists) {
-    const savedArtifactFileStats = statSync(savedArtifactFilePath);
-    const savedArtifactFileLastMod = savedArtifactFileStats.mtimeMs;
+  // if (savedArtifactExists) {
+  //   const savedArtifactFileStats = statSync(savedArtifactFilePath);
+  //   const savedArtifactFileLastMod = savedArtifactFileStats.mtimeMs;
 
-    if (compiledArtifactFileLastMod > savedArtifactFileLastMod) {
-      const readlineSync = require(`@thundernetworkrad/readline-sync`);
-      useSavedArtifact = readlineSync.keyInYN(
-        `Old ${contractName} artifact file found in artifacts-saved. Reuse it?`
-      );
-      if (!useSavedArtifact)
-        useSavedArtifact = !readlineSync.keyInYN(
-          `The saved ${contractName} artifact file will be OVERWRITTEN BY THE NEWER FILE, causing your contract to be possibly deployed to a DIFFERENT address than before. Are you sure?`
-        );
-      if (useSavedArtifact)
-        console.log(
-          `Using ${contractName} artifact file that was found in artifacts-saved.`
-        );
-    }
-  }
+  //   if (compiledArtifactFileLastMod > savedArtifactFileLastMod) {
+  //     const readlineSync = require(`@thundernetworkrad/readline-sync`);
+  //     useSavedArtifact = readlineSync.keyInYN(
+  //       `Old ${contractName} artifact file found in artifacts-saved. Reuse it?`
+  //     );
+  //     if (!useSavedArtifact)
+  //       useSavedArtifact = !readlineSync.keyInYN(
+  //         `The saved ${contractName} artifact file will be OVERWRITTEN BY THE NEWER FILE, causing your contract to be possibly deployed to a DIFFERENT address than before. Are you sure?`
+  //       );
+  //     if (useSavedArtifact)
+  //       console.log(
+  //         `Using ${contractName} artifact file that was found in artifacts-saved.`
+  //       );
+  //   }
+  // }
 
   if (!savedArtifactExists || !useSavedArtifact) {
     console.log(

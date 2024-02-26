@@ -1,13 +1,12 @@
-// implementation deployed normally, proxy deployed via CREATE3
-const { ethers, network, upgrades } = require(`hardhat`);
+import { ethers, network, upgrades } from "hardhat";
+import path from "path";
 
-// CHOOSE WHICH FACTORY YOU WANT TO USE:
-// const factoryToUse = { name: `axelarnetwork`, address: `0xf0d5258610A5eF4ac7b894DDaAD1c314De8d56a5` } // gas cost: 2222365
-// const factoryToUse = { name: `ZeframLou`, address: `0x92B9db5453E03E516Fd461a1852E67EAF8Bc6dad` } // gas cost: 2145541
-// const factoryToUse = { name: `SKYBITSolady`, address: `0x7008e1DEECA3E45E61b379BBA882134b3A15d9dF` } // gas cost: 2116813
+const pathDeployedContracts = path.join(__dirname, "../deployedContracts.json");
+const deployedContracts = require(pathDeployedContracts);
+
 const factoryToUse = {
   name: `SKYBITLite`,
-  address: `0xD74C916B09cB7466C8AcF11231610326EC5041DE`,
+  address: deployedContracts.create3Factory,
 }; // gas cost: 2117420
 
 const isDeployEnabled = true; // toggle in case you do deployment and verification separately.
@@ -17,8 +16,7 @@ const isVerifyEnabled = true;
 const useDeployProxy = false; // openzeppelin's deployment script for upgradeable contracts
 const useCREATE3 = true;
 
-const salt = ethers.encodeBytes32String(`HAJBIT.ASIA TESTERC20UGV1......`); // 31 characters that you choose
-
+const salt = ethers.encodeBytes32String(`Orbiter_Omini_Protocol_V1.0.1`); // 31 characters that you choose
 async function main() {
   const {
     rootRequire,
@@ -32,7 +30,7 @@ async function main() {
       wallet.address
     } having ${await printNativeCurrencyBalance(
       wallet.address
-    )} of native currency, RPC url: ${network.config.url}`
+    )} of native currency`
   );
 
   const tokenContractName = `TESTERC20UGV1`;
@@ -68,7 +66,7 @@ async function main() {
     implAddress = addressExpectedOfImpl;
 
     if (isDeployEnabled) {
-      const feeData = await ethers.provider.getFeeData();
+      let feeData = await ethers.provider.getFeeData();
       delete feeData.gasPrice;
       const impl = await cfToken.deploy({ ...feeData });
       await impl.waitForDeployment();
@@ -81,7 +79,7 @@ async function main() {
     }
     const proxyContractName = `ERC1967Proxy`;
     const cfProxy = await ethers.getContractFactory(proxyContractName); // got the artifacts locally from @openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol. The one in @openzeppelin/upgrades-core is old.
-    const fragment = cfToken.interface.getFunction(`initialize`);
+    const fragment = cfToken.interface.getFunction(`initialize`)!;
     initializerData = cfToken.interface.encodeFunctionData(
       fragment,
       initializerArgs
@@ -90,7 +88,7 @@ async function main() {
 
     if (useCREATE3) {
       const { getArtifactOfFactory, getDeployedAddress, CREATE3Deploy } =
-        rootRequire(`scripts/ProxyDeployment/CREATE3-deploy-functions.js`);
+        rootRequire(`scripts/ProxyDeployment/CREATE3-deploy-functions.ts`);
 
       if (isDeployEnabled) {
         proxy = await CREATE3Deploy(
@@ -112,7 +110,10 @@ async function main() {
           factoryToUse.address
         );
         const proxyBytecodeWithArgs = (
-          await cfProxy.getDeployTransaction(...proxyConstructorArgs)
+          await cfProxy.getDeployTransaction(
+            proxyConstructorArgs[0],
+            proxyConstructorArgs[1]
+          )
         ).data;
         proxyAddress = await getDeployedAddress(
           factoryToUse.name,
