@@ -34,6 +34,7 @@ import {
   deployOmniToken,
 } from "../scripts/deployment/utils.deployment";
 import { expect } from "chai";
+import { deployCreate3Factory } from "../scripts/ProxyDeployment/CREATE3.utils";
 
 describe("OrbiterStation", () => {
   let OmniTokenChainA: OmniToken;
@@ -60,15 +61,23 @@ describe("OrbiterStation", () => {
     PaymentSystemChainA = await deployMessagePaymentSystem(chainADeployer);
     PaymentSystemChainB = await deployMessagePaymentSystem(chainBDeployer);
 
-    OrbiterStationChainA = await deployMessageSpaceStation(chainADeployer, {
-      owner: await chainADeployer.getAddress(),
-      paymentSystem: await PaymentSystemChainA.getAddress(),
-    });
+    OrbiterStationChainA = await deployMessageSpaceStation(
+      chainADeployer,
+      {
+        owner: await chainADeployer.getAddress(),
+        paymentSystem: await PaymentSystemChainA.getAddress(),
+      },
+      false
+    );
 
-    OrbiterStationChainB = await deployMessageSpaceStation(chainBDeployer, {
-      owner: await chainBDeployer.getAddress(),
-      paymentSystem: await PaymentSystemChainB.getAddress(),
-    });
+    OrbiterStationChainB = await deployMessageSpaceStation(
+      chainBDeployer,
+      {
+        owner: await chainBDeployer.getAddress(),
+        paymentSystem: await PaymentSystemChainB.getAddress(),
+      },
+      false
+    );
 
     OmniTokenChainA = await deployOmniToken(chainADeployer, {
       name: "Omni Orbiter TokenA",

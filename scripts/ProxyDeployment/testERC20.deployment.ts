@@ -1,14 +1,11 @@
 import { ethers, network, upgrades } from "hardhat";
-import {
-  getDeployedCreate3Factory,
-  toCREATE3Deploy,
-} from "./CREATE3Factory.deployment";
+import { getDeployedCreate3Factory, toCREATE3Deploy } from "./CREATE3.utils";
 import { TESTERC20UGV1__factory } from "../../typechain-types";
 import { assert } from "console";
 
 async function deployTestToken() {
   let implAddress;
-  const salt = ethers.encodeBytes32String(`Orbiter_Omini_Protocol_V1.0.9`); // 31 characters that you choose
+  const salt = ethers.encodeBytes32String(`Orbiter_Omini_Protocol_V1.0.E`); // 31 characters that you choose
   const { printNativeCurrencyBalance } = require(`./utils`);
   const [wallet] = await ethers.getSigners();
   console.log(

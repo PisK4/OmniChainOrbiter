@@ -11,6 +11,8 @@ import {
   OmniToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
+  MessageSpaceStationUPG,
+  MessageSpaceStationUPG__factory,
   ChainA_EncodeMessageDemo,
   ChainA_EncodeMessageDemo__factory,
   IMessageSpaceStation,
@@ -18,7 +20,9 @@ import {
   Helper__factory,
   MessagePaymentSystem,
   MessagePaymentSystem__factory,
+  TESTERC20UGV1__factory,
 } from "../../typechain-types";
+import { toCREATE3Deploy } from "../ProxyDeployment/CREATE3.utils";
 
 interface OmniTokenConstructorArgs {
   name: string;
@@ -73,29 +77,79 @@ export async function deployOmniToken(
 
 export async function deployMessageSpaceStation(
   signer: HardhatEthersSigner,
-  args: { owner: string; paymentSystem: string }
+  args: { owner: string; paymentSystem: string },
+  isUpgradable: boolean = true
 ): Promise<MessageSpaceStation> {
-  const messageSpaceStation = await new MessageSpaceStation__factory(
-    signer
-  ).deploy(args.owner, args.paymentSystem, 1);
+  let messageSpaceStation: any;
 
-  await messageSpaceStation.waitForDeployment();
+  if (isUpgradable) {
+    let implAddress;
+    const nonce = await signer.getNonce();
+    const addressExpectedOfImpl = ethers.getCreateAddress({
+      from: signer.address,
+      nonce,
+    });
 
-  const deploymentData = await new MessageSpaceStation__factory(
-    signer
-  ).getDeployTransaction(args.owner, args.paymentSystem, 1);
+    console.log(
+      `Expected address of implementation using nonce ${nonce}: ${addressExpectedOfImpl}`
+    );
+    implAddress = addressExpectedOfImpl;
+    const messageSpaceStationFactory = new MessageSpaceStationUPG__factory(
+      signer
+    );
+    const impl = await messageSpaceStationFactory.deploy();
 
-  const estimateGas = await signer.estimateGas({
-    to: ethers.ZeroAddress,
-    data: deploymentData.data,
-  });
+    await impl.waitForDeployment();
+    implAddress = await impl.getAddress();
+    console.log(
+      `implAddress ${
+        implAddress === addressExpectedOfImpl ? `matches` : `doesn't match`
+      } addressExpectedOfImpl`
+    );
 
-  console.log(
-    "MessageSpaceStation deployed to:",
-    await messageSpaceStation.getAddress(),
-    "deploy gasUsed:",
-    estimateGas.toString()
-  );
+    const initializerArgs = [
+      args.owner,
+      args.paymentSystem,
+      args.owner,
+      args.owner,
+    ];
+
+    const proxy = await toCREATE3Deploy(
+      messageSpaceStationFactory,
+      initializerArgs,
+      implAddress,
+      ethers.encodeBytes32String(`MessageSpaceStation`),
+      signer
+    );
+
+    messageSpaceStation = new MessageSpaceStationUPG__factory(signer).attach(
+      proxy.target
+    );
+  } else {
+    messageSpaceStation = await new MessageSpaceStation__factory(signer).deploy(
+      args.owner,
+      args.paymentSystem,
+      1
+    );
+
+    await messageSpaceStation.waitForDeployment();
+
+    const deploymentData = await new MessageSpaceStation__factory(
+      signer
+    ).getDeployTransaction(args.owner, args.paymentSystem, 1);
+
+    const estimateGas = await signer.estimateGas({
+      to: ethers.ZeroAddress,
+      data: deploymentData.data,
+    });
+
+    console.log(
+      "MessageSpaceStation deployed to:",
+      await messageSpaceStation.getAddress(),
+      "deploy gasUsed:",
+      estimateGas.toString()
+    );
+  }
 
   return messageSpaceStation;
 }

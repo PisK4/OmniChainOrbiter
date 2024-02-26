@@ -31,16 +31,22 @@ const fundTransactionSigner = async (
 
       if (isDeployEnabled) {
         const readlineSync = require(`@thundernetworkrad/readline-sync`);
-        if (
-          readlineSync.keyInYN(
+        let isTransferFunds;
+        console.log("network.name", network.name);
+        if (network.name !== "hardhat") {
+          isTransferFunds = readlineSync.keyInYN(
             `Do you want to try to transfer ${ethers.formatUnits(
               shortfall,
               `ether`
             )} of native currency from your wallet ${
               wallet.address
             } to there now? `
-          )
-        ) {
+          );
+        } else {
+          isTransferFunds = true;
+        }
+
+        if (isTransferFunds) {
           console.log(
             `Transferring ${ethers.formatUnits(
               shortfall,
