@@ -195,12 +195,7 @@ export function getDeployedCreate3Factory(): {
   name: string;
   address: string;
 } {
-  // const pathDeployedContracts = path.join(
-  //   __dirname,
-  //   "../deployedContracts.json"
-  // );
-  // const deployedContracts = require(pathDeployedContracts);
-
+  const deployedContracts = getDeployedContracts();
   const CREATE3Factory = {
     name: `SKYBITLite`,
     address: deployedContracts.create3Factory,
@@ -210,7 +205,12 @@ export function getDeployedCreate3Factory(): {
 }
 
 export function getDeployedContracts() {
-  return deployedContracts;
+  if (!fs.existsSync(pathDeployedContracts)) {
+    throw new Error("deployedContracts.json doesn't exist");
+  } else {
+    const contractsString = fs.readFileSync(pathDeployedContracts, "utf8");
+    return JSON.parse(contractsString);
+  }
 }
 
 export function saveDeployedContracts(deployedContracts: any) {
