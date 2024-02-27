@@ -1,4 +1,5 @@
 {
   "create3Factory": "0xD74C916B09cB7466C8AcF11231610326EC5041DE",
-  "OrbiterMessageSpaceStation": "0x"
+  "OrbiterMessageSpaceStation_Proxy": "0xefd7e5aB08593918bACCF3d70e123CE0cd9D41C4",
+  "OrbiterMessageSpaceStation_Impl": "0x59bee71914792296E9B7b4e7d280FAb901F2d52F"
 }

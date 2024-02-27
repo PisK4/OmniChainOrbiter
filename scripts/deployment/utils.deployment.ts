@@ -5,14 +5,15 @@ import {
   ContractTransactionResponse,
   ContractTransaction,
 } from "ethers";
-
+import fs from "fs";
+import path from "path";
 import {
   OmniToken,
   OmniToken__factory,
   MessageSpaceStation,
   MessageSpaceStation__factory,
-  MessageSpaceStationUPG,
-  MessageSpaceStationUPG__factory,
+  MessageSpaceStationUg,
+  MessageSpaceStationUg__factory,
   ChainA_EncodeMessageDemo,
   ChainA_EncodeMessageDemo__factory,
   IMessageSpaceStation,
@@ -23,6 +24,7 @@ import {
   TESTERC20UGV1__factory,
 } from "../../typechain-types";
 import { toCREATE3Deploy } from "../ProxyDeployment/CREATE3.utils";
+import { get } from "http";
 
 interface OmniTokenConstructorArgs {
   name: string;
@@ -94,7 +96,7 @@ export async function deployMessageSpaceStation(
     //   `Expected implementation:${addressExpectedOfImpl}, using nonce: ${nonce}`
     // );
     implAddress = addressExpectedOfImpl;
-    const messageSpaceStationFactory = new MessageSpaceStationUPG__factory(
+    const messageSpaceStationFactory = new MessageSpaceStationUg__factory(
       signer
     );
     const impl = await messageSpaceStationFactory.deploy();
@@ -108,7 +110,7 @@ export async function deployMessageSpaceStation(
       );
     }
 
-    const deploymentData = await new MessageSpaceStationUPG__factory(
+    const deploymentData = await new MessageSpaceStationUg__factory(
       signer
     ).getDeployTransaction();
 
@@ -134,9 +136,14 @@ export async function deployMessageSpaceStation(
       signer
     );
 
-    messageSpaceStation = new MessageSpaceStationUPG__factory(signer).attach(
+    messageSpaceStation = new MessageSpaceStationUg__factory(signer).attach(
       proxy.target
     );
+
+    const deployedContracts = getDeployedContracts();
+    deployedContracts.OrbiterMessageSpaceStation_Proxy = proxy.target;
+    deployedContracts.OrbiterMessageSpaceStation_Impl = implAddress;
+    saveDeployedContracts(deployedContracts);
   } else {
     messageSpaceStation = await new MessageSpaceStation__factory(signer).deploy(
       args.owner,
@@ -180,4 +187,35 @@ export async function deployMessagePaymentSystem(
   );
 
   return messagePaymentSystem;
+}
+
+const pathDeployedContracts = path.join(__dirname, "../deployedContracts.json");
+const deployedContracts = require(pathDeployedContracts);
+export function getDeployedCreate3Factory(): {
+  name: string;
+  address: string;
+} {
+  // const pathDeployedContracts = path.join(
+  //   __dirname,
+  //   "../deployedContracts.json"
+  // );
+  // const deployedContracts = require(pathDeployedContracts);
+
+  const CREATE3Factory = {
+    name: `SKYBITLite`,
+    address: deployedContracts.create3Factory,
+  }; // gas cost: 2117420
+
+  return CREATE3Factory;
+}
+
+export function getDeployedContracts() {
+  return deployedContracts;
+}
+
+export function saveDeployedContracts(deployedContracts: any) {
+  fs.writeFileSync(
+    pathDeployedContracts,
+    JSON.stringify(deployedContracts, null, 2)
+  );
 }

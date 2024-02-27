@@ -19,7 +19,7 @@ import {Errors} from "./library/Errors.sol";
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
-abstract contract MessageSpaceStationCoreUPG is
+abstract contract MessageSpaceStationCoreUg is
     Initializable,
     IMessageSpaceStation,
     MessageMonitor,
@@ -100,6 +100,19 @@ abstract contract MessageSpaceStationCoreUPG is
             revert Errors.TimeNotReached();
         }
         _;
+    }
+
+    function _initialize(
+        address trustedSequencerAddr,
+        address paymentSystemAddr
+    ) internal initializer {
+        TrustedSequencer[trustedSequencerAddr] = true;
+
+        if (paymentSystemAddr == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
+        emit PaymentSystemChanging(paymentSystemAddr);
     }
 
     function Launch(

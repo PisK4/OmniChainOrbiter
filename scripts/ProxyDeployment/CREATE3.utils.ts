@@ -4,30 +4,15 @@ import fs from "fs";
 import path from "path";
 import { assert } from "console";
 import { ContractFactory } from "ethers";
+import {
+  getDeployedContracts,
+  getDeployedCreate3Factory,
+  saveDeployedContracts,
+} from "../deployment/utils.deployment";
 
-const pathDeployedContracts = path.join(__dirname, "../deployedContracts.json");
-const deployedContracts = require(pathDeployedContracts);
 const factoryToDeploy = `SKYBITLite`;
 const isDeployEnabled = true; // toggle in case you do deployment and verification separately.
 const isVerifyEnabled = true;
-
-export function getDeployedCreate3Factory(): {
-  name: string;
-  address: string;
-} {
-  const pathDeployedContracts = path.join(
-    __dirname,
-    "../deployedContracts.json"
-  );
-  const deployedContracts = require(pathDeployedContracts);
-
-  const CREATE3Factory = {
-    name: `SKYBITLite`,
-    address: deployedContracts.create3Factory,
-  }; // gas cost: 2117420
-
-  return CREATE3Factory;
-}
 
 export async function toCREATE3Deploy(
   factory: any,
@@ -108,11 +93,10 @@ export async function deployCreate3Factory(): Promise<void> {
     const { verifyContract } = require(`./utils`);
     await verifyContract(address, []);
   } else console.log(`Verification on explorer skipped`);
+
+  const deployedContracts = getDeployedContracts();
   deployedContracts.create3Factory = address;
-  fs.writeFileSync(
-    pathDeployedContracts,
-    JSON.stringify(deployedContracts, null, 2)
-  );
+  saveDeployedContracts(deployedContracts);
   return address;
 }
 
