@@ -298,12 +298,6 @@ abstract contract MessageSpaceStationCore is
         return paymentSystem.EstimateFee_(params);
     }
 
-    function EstimateFee(
-        IMessageEmitter.activateRawMsg calldata params
-    ) public view override returns (uint256) {
-        return paymentSystem.EstimateFee_(params);
-    }
-
     function ConfigTrustedSequencer(
         address trustedSequencerAddr,
         bool state
@@ -415,6 +409,6 @@ abstract contract MessageSpaceStationCore is
         uint64 latestArrivalTime
     ) internal view virtual {
         (earlistArrivalTime, latestArrivalTime);
-        revert Errors.NotImplement();
+        // revert Errors.NotImplement();
     }
 }

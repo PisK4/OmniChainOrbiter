@@ -301,12 +301,6 @@ abstract contract MessageSpaceStationCoreUg is
         return paymentSystem.EstimateFee_(params);
     }
 
-    function EstimateFee(
-        IMessageEmitter.activateRawMsg calldata params
-    ) public view override returns (uint256) {
-        return paymentSystem.EstimateFee_(params);
-    }
-
     function ConfigTrustedSequencer(
         address trustedSequencerAddr,
         bool state

@@ -11,7 +11,7 @@ contract MessageSpaceStationUg is MessageSpaceStationCoreUg {
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
-    uint16 public constant currentChainId = L2SupportLib.NEXUS;
+    uint16 public constant deployChainId = L2SupportLib.NEXUS;
 
     constructor() {
         _disableInitializers();
@@ -48,6 +48,6 @@ contract MessageSpaceStationUg is MessageSpaceStationCoreUg {
     }
 
     function ChainId() public pure override returns (uint16) {
-        return currentChainId;
+        return deployChainId;
     }
 }

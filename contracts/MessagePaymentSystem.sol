@@ -5,8 +5,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
-import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
-
 import {MessageMonitorLib} from "./MessageMonitor.sol";
 
 import {Utils} from "./library/Utils.sol";
@@ -25,13 +23,6 @@ contract MessagePaymentSystem is IMessagePaymentSystem, Ownable {
 
     function EstimateFee_(
         IMessageSpaceStation.launchMultiMsgParams calldata params
-    ) external pure override returns (uint256) {
-        (params);
-        return (0.1 ether);
-    }
-
-    function EstimateFee_(
-        IMessageEmitter.activateRawMsg calldata params
     ) external pure override returns (uint256) {
         (params);
         return (0.1 ether);

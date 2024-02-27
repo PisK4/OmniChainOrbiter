@@ -46,43 +46,6 @@ abstract contract MessageEmitter is IMessageEmitter {
         LaunchPad = IMessageSpaceStation(_LaunchPad);
     }
 
-    function emit2LaunchPad(
-        IMessageSpaceStation.launchMultiMsgParams memory params
-    ) public payable override {
-        LaunchPad.Launch{value: msg.value}(params);
-    }
-
-    function emit2LaunchPad(
-        IMessageSpaceStation.launchSingleMsgParams memory params
-    ) public payable override {
-        LaunchPad.Launch{value: msg.value}(params);
-    }
-
-    function converActivateRawMsg(
-        activateRawMsg memory rawMsg
-    )
-        public
-        pure
-        override
-        returns (IMessageSpaceStation.launchMultiMsgParams memory)
-    {
-        return
-            IMessageSpaceStation.launchMultiMsgParams(
-                rawMsg.earlistArrivalTime,
-                rawMsg.latestArrivalTime,
-                rawMsg.relayer,
-                rawMsg.sender,
-                rawMsg.destChainld,
-                rawMsg.aditionParams,
-                PacketMessages(
-                    rawMsg.mode,
-                    rawMsg.gasLimit,
-                    rawMsg.targetContarct,
-                    rawMsg.message
-                )
-            );
-    }
-
     /// @notice call this function to packet the message before sending it to the LandingPad contract
     /// @param mode the emmiter mode, check MessageTypeLib.sol for more details
     /// @param gasLimit the gas limit for executing the specific function on the target contract

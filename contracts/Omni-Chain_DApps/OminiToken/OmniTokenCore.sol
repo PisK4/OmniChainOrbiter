@@ -225,4 +225,41 @@ abstract contract OmniTokenCore is
 
         return (message, targetContract, mode, gasLimit);
     }
+
+    function emit2LaunchPad(
+        IMessageSpaceStation.launchMultiMsgParams memory params
+    ) public payable virtual {
+        LaunchPad.Launch{value: msg.value}(params);
+    }
+
+    function emit2LaunchPad(
+        IMessageSpaceStation.launchSingleMsgParams memory params
+    ) public payable virtual {
+        LaunchPad.Launch{value: msg.value}(params);
+    }
+
+    function converActivateRawMsg(
+        activateRawMsg memory rawMsg
+    )
+        public
+        pure
+        virtual
+        returns (IMessageSpaceStation.launchMultiMsgParams memory)
+    {
+        return
+            IMessageSpaceStation.launchMultiMsgParams(
+                rawMsg.earlistArrivalTime,
+                rawMsg.latestArrivalTime,
+                rawMsg.relayer,
+                rawMsg.sender,
+                rawMsg.destChainld,
+                rawMsg.aditionParams,
+                PacketMessages(
+                    rawMsg.mode,
+                    rawMsg.gasLimit,
+                    rawMsg.targetContarct,
+                    rawMsg.message
+                )
+            );
+    }
 }

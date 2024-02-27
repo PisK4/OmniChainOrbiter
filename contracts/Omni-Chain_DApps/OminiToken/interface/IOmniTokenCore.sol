@@ -2,6 +2,19 @@
 pragma solidity ^0.8.23;
 
 interface IOmniTokenCore {
+    struct activateRawMsg {
+        uint16[] destChainld;
+        uint64 earlistArrivalTime;
+        uint64 latestArrivalTime;
+        address sender;
+        address relayer;
+        bytes1[] mode;
+        address[] targetContarct;
+        uint24[] gasLimit;
+        bytes[] message;
+        bytes[] aditionParams;
+    }
+
     function mint(address toAddress, uint256 amount) external;
 
     function bridgeTransfer(
