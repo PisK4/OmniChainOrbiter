@@ -238,10 +238,6 @@ const deployKeylessly = async (
 
   // THE DEPLOYMENT TRANSACTION
   if (isDeployEnabled) {
-    console.log(
-      `Deploying ${contractName} contract by broadcasting signed raw transaction to ${network.name}...`
-    );
-
     // const txHash = await ethers.provider.send(`eth_sendRawTransaction`, [txSignedSerialized])
     const txReceipt = await ethers.provider.broadcastTransaction(
       txSignedSerialized
@@ -250,7 +246,7 @@ const deployKeylessly = async (
 
     if ((await ethers.provider.getCode(addressExpected)) !== `0x`)
       console.log(
-        `${contractName} contract was successfully deployed to ${addressExpected} in transaction ${txReceipt.hash}`
+        `CREATE3Factory was deployed to ${addressExpected} in ${network.name}, tx ${txReceipt.hash}`
       );
   }
   return addressExpected;

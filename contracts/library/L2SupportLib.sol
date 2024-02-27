@@ -44,4 +44,5 @@ library L2SupportLib {
     uint16 constant REDDIOEX = 0x28;
     uint16 constant FUEL_V1 = 0x29;
     uint16 constant MAX_CHAIN_ID = 0x30;
+    uint16 constant UNIVERSE_CHAIN_ID = type(uint16).max - 1;
 }

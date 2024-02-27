@@ -69,7 +69,7 @@ export async function deployOmniToken(
     "deployed to:",
     await OmniToken.getAddress(),
     "deploy gasUsed:",
-    estimateGas.toString()
+    estimateGas
   );
 
   return OmniToken;
@@ -90,9 +90,9 @@ export async function deployMessageSpaceStation(
       nonce,
     });
 
-    console.log(
-      `Expected address of implementation using nonce ${nonce}: ${addressExpectedOfImpl}`
-    );
+    // console.log(
+    //   `Expected implementation:${addressExpectedOfImpl}, using nonce: ${nonce}`
+    // );
     implAddress = addressExpectedOfImpl;
     const messageSpaceStationFactory = new MessageSpaceStationUPG__factory(
       signer
@@ -101,10 +101,27 @@ export async function deployMessageSpaceStation(
 
     await impl.waitForDeployment();
     implAddress = await impl.getAddress();
+
+    if (implAddress !== addressExpectedOfImpl) {
+      throw new Error(
+        `implAddress ${implAddress} doesn't match addressExpectedOfImpl ${addressExpectedOfImpl}`
+      );
+    }
+
+    const deploymentData = await new MessageSpaceStationUPG__factory(
+      signer
+    ).getDeployTransaction();
+
+    const estimateGas = await signer.estimateGas({
+      to: ethers.ZeroAddress,
+      data: deploymentData.data,
+    });
+
     console.log(
-      `implAddress ${
-        implAddress === addressExpectedOfImpl ? `matches` : `doesn't match`
-      } addressExpectedOfImpl`
+      "MessageSpaceStation impl deployed to:",
+      implAddress,
+      "deploy gasUsed:",
+      estimateGas
     );
 
     const initializerArgs = [
@@ -147,7 +164,7 @@ export async function deployMessageSpaceStation(
       "MessageSpaceStation deployed to:",
       await messageSpaceStation.getAddress(),
       "deploy gasUsed:",
-      estimateGas.toString()
+      estimateGas
     );
   }
 

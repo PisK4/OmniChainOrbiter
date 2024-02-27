@@ -177,8 +177,6 @@ const CREATE3Deploy = async (
     addressOfFactory
   );
 
-  console.log(`salt: ${salt}`);
-
   const addressExpected = await getDeployedAddress(
     factoryToUse,
     instanceOfFactory,
@@ -186,9 +184,9 @@ const CREATE3Deploy = async (
     wallet,
     salt
   );
-  console.log(
-    `Expected address of ${contractToDeployName} using factory at ${addressOfFactory}: ${addressExpected}`
-  );
+  // console.log(
+  //   `Expected address of ${contractToDeployName} using factory at ${addressOfFactory}: ${addressExpected}`
+  // );
 
   if ((await ethers.provider.getCode(addressExpected)) !== `0x`) {
     console.log(
@@ -199,26 +197,15 @@ const CREATE3Deploy = async (
   }
 
   const feeData = await ethers.provider.getFeeData();
-  // TODO: not working as expected
-  // const functionCallGasCost = await getGasEstimate(
-  //   factoryToUse,
-  //   instanceOfFactory,
-  //   bytecodeWithArgs,
-  //   wallet,
-  //   salt
-  // );
-  // console.log(`functionCallGasCost: ${functionCallGasCost}`);
+  const functionCallGasCost = await getGasEstimate(
+    factoryToUse,
+    instanceOfFactory,
+    bytecodeWithArgs,
+    wallet,
+    salt
+  );
+  const gasFeeEstimate = feeData.gasPrice! * functionCallGasCost;
 
-  // console.log(`feeData: ${JSON.stringify(feeData)}`);
-  // const gasFeeEstimate = feeData.gasPrice! * functionCallGasCost;
-  // console.log(
-  //   `gasFeeEstimate: ${ethers.formatUnits(
-  //     gasFeeEstimate,
-  //     `ether`
-  //   )} of native currency`
-  // );
-
-  console.log(`now calling deploy() in the CREATE3 factory...`);
   const txResponse = await deploy(
     factoryToUse,
     instanceOfFactory,
@@ -230,9 +217,17 @@ const CREATE3Deploy = async (
   await txResponse.wait();
 
   const instanceOfDeployedContract = contractFactory.attach(addressExpected);
+
   console.log(
-    `${contractToDeployName} was successfully deployed to ${instanceOfDeployedContract.target}`
+    "Proxy Contract deployed to:",
+    instanceOfDeployedContract.target,
+    "deploy gasUsed:",
+    functionCallGasCost
+    // "gasFeeIn:",
+    // ethers.formatUnits(gasFeeEstimate, "ether"),
+    // "ETH"
   );
+
   if (instanceOfDeployedContract.target === addressExpected)
     console.log(`The actual deployment address matches the expected address`);
 
@@ -302,13 +297,10 @@ const getGasEstimate = async (
       return await instanceOfFactory.deploy.estimateGas(salt, bytecode);
     case `SKYBITLite`:
     default:
-      console.log(`instanceOfFactory: ${JSON.stringify(instanceOfFactory)}`);
       const txData = {
         to: instanceOfFactory.target,
         data: bytecode.replace(`0x`, salt),
       };
-
-      // console.log(`txData: ${JSON.stringify(txData)}`);
       const ret = await wallet.estimateGas(txData);
       return ret;
   }

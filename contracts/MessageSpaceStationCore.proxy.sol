@@ -33,7 +33,7 @@ abstract contract MessageSpaceStationCoreUPG is
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
-    uint16 immutable UNIVERSE_CHAIN_ID = type(uint16).max - 1;
+    uint16 immutable UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public override isPaused;
@@ -225,7 +225,7 @@ abstract contract MessageSpaceStationCoreUPG is
 
     function SimulateLanding(
         paramsLanding[] calldata params
-    ) external override {
+    ) external virtual override {
         bool[] memory success = new bool[](params.length);
         for (uint256 i = 0; i < params.length; i++) {
             success[i] = _handleInteractiveMessage(params[i]);
