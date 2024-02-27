@@ -18,6 +18,13 @@ abstract contract OmniTokenCore is
 {
     error InvalidData();
 
+    uint64 public immutable override minArrivalTime;
+    uint64 public immutable override maxArrivalTime;
+    uint24 public immutable override minGasLimit;
+    uint24 public immutable override maxGasLimit;
+    bytes1 public immutable override defaultBridgeMode;
+    address public immutable override selectedRelayer;
+
     // mirror OmniToken : mirrorToken[chainId] = address
     mapping(uint16 => address) public mirrorToken;
 

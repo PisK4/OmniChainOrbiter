@@ -124,12 +124,7 @@ export async function deployMessageSpaceStation(
       estimateGas
     );
 
-    const initializerArgs = [
-      args.owner,
-      args.paymentSystem,
-      args.owner,
-      args.owner,
-    ];
+    const initializerArgs = [args.owner, args.paymentSystem, args.owner];
 
     const proxy = await toCREATE3Deploy(
       messageSpaceStationFactory,

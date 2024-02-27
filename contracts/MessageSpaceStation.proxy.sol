@@ -5,14 +5,13 @@ import {MessageSpaceStationCoreUPG} from "./MessageSpaceStationCore.proxy.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 
 import {Errors} from "./library/Errors.sol";
+import {L2SupportLib} from "./library/L2SupportLib.sol";
 
 contract MessageSpaceStationUPG is MessageSpaceStationCoreUPG {
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
-    uint16 public constant currentChainId = 1;
-
-    // bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    uint16 public constant currentChainId = L2SupportLib.NEXUS;
 
     constructor() {
         _disableInitializers();
@@ -21,8 +20,7 @@ contract MessageSpaceStationUPG is MessageSpaceStationCoreUPG {
     function initialize(
         address trustedSequencerAddr,
         address paymentSystemAddr,
-        address _owner,
-        address _adminAddress
+        address _owner
     ) public initializer {
         __Ownable_init(_owner);
         __UUPSUpgradeable_init();

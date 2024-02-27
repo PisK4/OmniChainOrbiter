@@ -400,15 +400,16 @@ abstract contract MessageSpaceStationCoreUPG is
         return messageId;
     }
 
+    /// @dev Not implement yet, developer should inherit this function and implement it
     function _checkArrivalTime(
         uint64 earlistArrivalTime,
         uint64 latestArrivalTime
     ) internal view virtual {
         (earlistArrivalTime, latestArrivalTime);
-        revert Errors.NotImplement();
+        // revert Errors.NotImplement();
     }
 
     function ChainId() public pure virtual override returns (uint16) {
-        revert Errors.NotImplement();
+        // revert Errors.NotImplement();
     }
 }

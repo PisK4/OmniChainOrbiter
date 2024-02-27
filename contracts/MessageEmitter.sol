@@ -16,12 +16,29 @@ abstract contract MessageEmitter is IMessageEmitter {
     ///        in OmniToken, we use MessageTypeLib.ARBITRARY_ACTIVATE, targer chain will **ACTIVATE** the message
     /// @notice selectedRelayer the default relayer for the cross-chain message
 
-    uint64 public immutable override minArrivalTime;
-    uint64 public immutable override maxArrivalTime;
-    uint24 public immutable override minGasLimit;
-    uint24 public immutable override maxGasLimit;
-    bytes1 public immutable override defaultBridgeMode;
-    address public immutable override selectedRelayer;
+    function minArrivalTime() external view virtual override returns (uint64) {}
+
+    function maxArrivalTime() external view virtual override returns (uint64) {}
+
+    function minGasLimit() external view virtual override returns (uint24) {}
+
+    function maxGasLimit() external view virtual override returns (uint24) {}
+
+    function defaultBridgeMode()
+        external
+        view
+        virtual
+        override
+        returns (bytes1)
+    {}
+
+    function selectedRelayer()
+        external
+        view
+        virtual
+        override
+        returns (address)
+    {}
 
     IMessageSpaceStation public LaunchPad;
 
