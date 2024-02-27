@@ -12,8 +12,7 @@ contract MessageSpaceStationUPG is MessageSpaceStationCoreUPG {
     uint64 public constant override maxArrivalTime = 30 days;
     uint16 public constant currentChainId = 1;
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    // bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     constructor() {
         _disableInitializers();
@@ -27,10 +26,6 @@ contract MessageSpaceStationUPG is MessageSpaceStationCoreUPG {
     ) public initializer {
         __Ownable_init(_owner);
         __UUPSUpgradeable_init();
-        __AccessControl_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, _adminAddress);
-        _grantRole(MINTER_ROLE, _adminAddress);
-        _grantRole(UPGRADER_ROLE, _adminAddress);
 
         TrustedSequencer[trustedSequencerAddr] = true;
 
@@ -43,7 +38,7 @@ contract MessageSpaceStationUPG is MessageSpaceStationCoreUPG {
 
     function _authorizeUpgrade(
         address newImplementation
-    ) internal override onlyRole(UPGRADER_ROLE) {}
+    ) internal override onlyOwner {}
 
     function _checkArrivalTime(
         uint64 earlistArrivalTime,

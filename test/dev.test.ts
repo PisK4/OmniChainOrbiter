@@ -67,7 +67,7 @@ describe("OrbiterStation", () => {
         owner: await chainADeployer.getAddress(),
         paymentSystem: await PaymentSystemChainA.getAddress(),
       },
-      false
+      true
     );
 
     OrbiterStationChainB = await deployMessageSpaceStation(
@@ -76,7 +76,7 @@ describe("OrbiterStation", () => {
         owner: await chainBDeployer.getAddress(),
         paymentSystem: await PaymentSystemChainB.getAddress(),
       },
-      false
+      true
     );
 
     OmniTokenChainA = await deployOmniToken(chainADeployer, {
