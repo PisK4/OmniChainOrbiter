@@ -5,6 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOmniTokenCore} from "./interface/IOmniTokenCore.sol";
 import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
+import {IMessageStruct} from "../../interface/IMessageStruct.sol";
 
 import {MessageEmitter} from "../../MessageEmitter.sol";
 import {MessageReceiver} from "../../MessageReceiver.sol";
@@ -116,7 +117,7 @@ abstract contract OmniTokenCore is
         // uint24[] memory gasLimit = new uint24[](1);
         // gasLimit[0] = minGasLimit;
         // emit2LaunchPad(
-        //     IMessageSpaceStation.launchMultiMsgParams(
+        //     IMessageStruct.launchMultiMsgParams(
         //         destChainIdArr,
         //         uint64(block.timestamp + minArrivalTime),
         //         uint64(block.timestamp + maxArrivalTime),
@@ -134,7 +135,7 @@ abstract contract OmniTokenCore is
         uint256 amount
     ) public payable virtual {
         emit2LaunchPad(
-            IMessageSpaceStation.launchSingleMsgParams(
+            IMessageStruct.launchSingleMsgParams(
                 uint64(block.timestamp + minArrivalTime),
                 uint64(block.timestamp + maxArrivalTime),
                 selectedRelayer,
@@ -175,7 +176,7 @@ abstract contract OmniTokenCore is
 
         return
             LaunchPad.EstimateFee(
-                IMessageSpaceStation.launchMultiMsgParams(
+                IMessageStruct.launchMultiMsgParams(
                     uint64(block.timestamp + minArrivalTime),
                     uint64(block.timestamp + maxArrivalTime),
                     selectedRelayer,
@@ -227,27 +228,22 @@ abstract contract OmniTokenCore is
     }
 
     function emit2LaunchPad(
-        IMessageSpaceStation.launchMultiMsgParams memory params
+        IMessageStruct.launchMultiMsgParams memory params
     ) public payable virtual {
         LaunchPad.Launch{value: msg.value}(params);
     }
 
     function emit2LaunchPad(
-        IMessageSpaceStation.launchSingleMsgParams memory params
+        IMessageStruct.launchSingleMsgParams memory params
     ) public payable virtual {
         LaunchPad.Launch{value: msg.value}(params);
     }
 
     function converActivateRawMsg(
         activateRawMsg memory rawMsg
-    )
-        public
-        pure
-        virtual
-        returns (IMessageSpaceStation.launchMultiMsgParams memory)
-    {
+    ) public pure virtual returns (IMessageStruct.launchMultiMsgParams memory) {
         return
-            IMessageSpaceStation.launchMultiMsgParams(
+            IMessageStruct.launchMultiMsgParams(
                 rawMsg.earlistArrivalTime,
                 rawMsg.latestArrivalTime,
                 rawMsg.relayer,

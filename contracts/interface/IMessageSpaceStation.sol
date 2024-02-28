@@ -1,58 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-interface IMessageSpaceStation {
-    struct launchSingleMsgParams {
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        address relayer;
-        address sender;
-        uint16 destChainld;
-        bytes aditionParams;
-        bytes message;
-    }
+import {IMessageStruct} from "./IMessageStruct.sol";
 
-    struct launchMultiMsgParams {
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
-        address relayer;
-        address sender;
-        uint16[] destChainld;
-        bytes[] aditionParams;
-        bytes[] message;
-    }
-
-    struct paramsLanding {
-        uint16 srcChainld;
-        uint24 nonceLandingCurrent;
-        address sender;
-        uint256 value;
-        bytes32 messgeId;
-        bytes message;
-    }
-
-    struct paramsBatchLanding {
-        uint16 srcChainld;
-        address sender;
-        bytes32 messgeId;
-    }
-
-    event SuccessfulLaunch(
-        bytes32[] indexed messageId,
-        launchMultiMsgParams params
-    );
-    event SuccessfulLaunchSingle(
-        bytes32 indexed messageId,
-        launchSingleMsgParams params
-    );
-    event SuccessfulLanding(bytes32 indexed messageId, paramsLanding params);
-    event SuccessfulBatchLanding(
-        bytes32 indexed messageId,
-        paramsBatchLanding params
-    );
-    event EngineStatusRefreshing(bool isPause);
-    event PaymentSystemChanging(address paymentSystemAddress);
-
+interface IMessageSpaceStation is IMessageStruct {
     /// @notice LaunchPad is the function that user or DApps send cross-chain message to orther chain
     ///         Once the message is sent, the Relay will validate the message and send it to the target chain
     /// @dev the arguments of the function is packed in the launchMultiMsgParams struct

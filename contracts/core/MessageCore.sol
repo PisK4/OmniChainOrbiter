@@ -4,6 +4,8 @@ pragma solidity ^0.8.23;
 import {IMessageSpaceStation} from "../interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "../interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "../interface/IDefaultLandingHandler.sol";
+import {IMessageStruct} from "../interface/IMessageStruct.sol";
+import {IMessageEvent} from "../interface/IMessageEvent.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "../library/MessageTypeLib.sol";
@@ -14,7 +16,11 @@ import {Errors} from "../library/Errors.sol";
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
-abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
+abstract contract MessageCore is
+    IMessageSpaceStation,
+    IMessageEvent,
+    MessageMonitor
+{
     using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
@@ -23,8 +29,6 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     using Utils for bytes;
 
     uint16 immutable UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
-
-    // uint16 public immutable override ChainId;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public override isPaused;

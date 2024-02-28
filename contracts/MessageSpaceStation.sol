@@ -5,7 +5,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MessageCore} from "./core/MessageCore.sol";
 import {Errors} from "./library/Errors.sol";
 import {L2SupportLib} from "./library/L2SupportLib.sol";
-
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 
 contract MessageSpaceStation is Ownable, MessageCore {
