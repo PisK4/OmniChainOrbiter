@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
-import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
-import {Errors} from "./library/Errors.sol";
-import {Utils} from "./library/Utils.sol";
+// import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
+import {Errors} from "../library/Errors.sol";
+import {Utils} from "../library/Utils.sol";
 
 library MessageMonitorLib {
     using MessageMonitorLib for address;

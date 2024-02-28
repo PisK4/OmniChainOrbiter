@@ -1,24 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
-import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
-import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
-import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
+import {IMessageSpaceStation} from "../interface/IMessageSpaceStation.sol";
+import {IMessagePaymentSystem} from "../interface/IMessagePaymentSystem.sol";
+import {IDefaultLandingHandler} from "../interface/IDefaultLandingHandler.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
-import {MessageTypeLib} from "./library/MessageTypeLib.sol";
-import {L2SupportLib} from "./library/L2SupportLib.sol";
-import {Utils} from "./library/Utils.sol";
-import {Errors} from "./library/Errors.sol";
+import {MessageTypeLib} from "../library/MessageTypeLib.sol";
+import {L2SupportLib} from "../library/L2SupportLib.sol";
+import {Utils} from "../library/Utils.sol";
+import {Errors} from "../library/Errors.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
-abstract contract MessageSpaceStationCore is
-    IMessageSpaceStation,
-    MessageMonitor
-{
+abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
@@ -55,16 +51,6 @@ abstract contract MessageSpaceStationCore is
         }
         _;
     }
-
-    // constructor(
-    //     address trustedSequencerAddr,
-    //     address paymentSystemAddr,
-    //     uint16 chainId
-    // ) payable Ownable(msg.sender) {
-    //     ConfigTrustedSequencer(trustedSequencerAddr, true);
-    //     paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
-    //     ChainId() = chainId;
-    // }
 
     /// @notice if engine is stop, all message which pass to the Station will be revert
     /// @dev owner should call this function to stop the engine when the Station is under attack

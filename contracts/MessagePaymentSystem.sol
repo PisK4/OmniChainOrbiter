@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
-import {MessageMonitorLib} from "./MessageMonitor.sol";
+import {MessageMonitorLib} from "./core/MessageMonitor.sol";
 
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";

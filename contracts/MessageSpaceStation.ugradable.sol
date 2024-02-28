@@ -4,19 +4,9 @@ pragma solidity ^0.8.23;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
-import {MessageSpaceStationCore} from "./MessageSpaceStationCore.sol";
-
-// import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
+import {MessageCore} from "./core/MessageCore.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
-
-// import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
-// import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
-
-// import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
-// import {MessageTypeLib} from "./library/MessageTypeLib.sol";
 import {L2SupportLib} from "./library/L2SupportLib.sol";
-// import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
@@ -26,7 +16,7 @@ contract MessageSpaceStationUg is
     Initializable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    MessageSpaceStationCore
+    MessageCore
 {
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
