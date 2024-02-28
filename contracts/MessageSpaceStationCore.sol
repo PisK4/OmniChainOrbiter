@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
 import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
@@ -14,15 +12,12 @@ import {L2SupportLib} from "./library/L2SupportLib.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-import "hardhat/console.sol";
-
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
 abstract contract MessageSpaceStationCore is
     IMessageSpaceStation,
-    MessageMonitor,
-    Ownable
+    MessageMonitor
 {
     using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
@@ -31,9 +26,9 @@ abstract contract MessageSpaceStationCore is
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
-    uint16 immutable UNIVERSE_CHAIN_ID = type(uint16).max - 1;
+    uint16 immutable UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
 
-    uint16 public immutable override ChainId;
+    // uint16 public immutable override ChainId;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public override isPaused;
@@ -54,15 +49,22 @@ abstract contract MessageSpaceStationCore is
 
     receive() external payable {}
 
-    constructor(
-        address trustedSequencerAddr,
-        address paymentSystemAddr,
-        uint16 chainId
-    ) payable Ownable(msg.sender) {
-        ConfigTrustedSequencer(trustedSequencerAddr, true);
-        paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
-        ChainId = chainId;
+    modifier onlyManager() {
+        if (msg.sender != Manager()) {
+            revert Errors.AccessDenied();
+        }
+        _;
     }
+
+    // constructor(
+    //     address trustedSequencerAddr,
+    //     address paymentSystemAddr,
+    //     uint16 chainId
+    // ) payable Ownable(msg.sender) {
+    //     ConfigTrustedSequencer(trustedSequencerAddr, true);
+    //     paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
+    //     ChainId() = chainId;
+    // }
 
     /// @notice if engine is stop, all message which pass to the Station will be revert
     /// @dev owner should call this function to stop the engine when the Station is under attack
@@ -166,7 +168,7 @@ abstract contract MessageSpaceStationCore is
         returns (bytes32 messageId)
     {
         messageId = nonceLaunch.handling(
-            ChainId,
+            ChainId(),
             params.destChainld,
             params.sender,
             address(this)
@@ -227,7 +229,7 @@ abstract contract MessageSpaceStationCore is
             ) {
                 revert Errors.NonceNotMatched();
             }
-            nonceLanding.update(ChainId, params[i].sender);
+            nonceLanding.update(ChainId(), params[i].sender);
             _handleInteractiveMessage(params[i]);
             emit SuccessfulLanding(params[i].messgeId, params[i]);
         }
@@ -260,7 +262,7 @@ abstract contract MessageSpaceStationCore is
         }
     }
 
-    function PauseEngine(bool stop) external override onlyOwner {
+    function PauseEngine(bool stop) external override onlyManager {
         if (stop) {
             isPaused = MessageMonitorLib.ENGINE_STOP;
         } else {
@@ -270,7 +272,7 @@ abstract contract MessageSpaceStationCore is
     }
 
     function Withdarw(uint256 amount) external override {
-        (bool sent, ) = payable(owner()).call{value: amount}("");
+        (bool sent, ) = payable(Manager()).call{value: amount}("");
         if (!sent) {
             revert Errors.WithdrawError();
         }
@@ -278,7 +280,7 @@ abstract contract MessageSpaceStationCore is
 
     function SetPaymentSystem(
         address paymentSystemAddress
-    ) external override onlyOwner {
+    ) external override onlyManager {
         if (paymentSystemAddress == address(0)) {
             revert Errors.InvalidAddress();
         }
@@ -301,7 +303,7 @@ abstract contract MessageSpaceStationCore is
     function ConfigTrustedSequencer(
         address trustedSequencerAddr,
         bool state
-    ) public override onlyOwner {
+    ) public override onlyManager {
         TrustedSequencer[trustedSequencerAddr] = state;
     }
 
@@ -377,7 +379,7 @@ abstract contract MessageSpaceStationCore is
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLaunch.handling(
-                ChainId,
+                ChainId(),
                 params.destChainld[i],
                 params.sender,
                 address(this)
@@ -394,7 +396,7 @@ abstract contract MessageSpaceStationCore is
         bytes32[] memory messageId = new bytes32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             messageId[i] = nonceLaunch.fetchMessageId(
-                ChainId,
+                ChainId(),
                 chainId,
                 params.sender,
                 address(this)
@@ -409,6 +411,14 @@ abstract contract MessageSpaceStationCore is
         uint64 latestArrivalTime
     ) internal view virtual {
         (earlistArrivalTime, latestArrivalTime);
+        // revert Errors.NotImplement();
+    }
+
+    function ChainId() public pure virtual override returns (uint16) {
+        // revert Errors.NotImplement();
+    }
+
+    function Manager() public view virtual override returns (address) {
         // revert Errors.NotImplement();
     }
 }

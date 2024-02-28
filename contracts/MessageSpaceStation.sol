@@ -1,26 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MessageSpaceStationCore} from "./MessageSpaceStationCore.sol";
 import {Errors} from "./library/Errors.sol";
+import {L2SupportLib} from "./library/L2SupportLib.sol";
 
-contract MessageSpaceStation is MessageSpaceStationCore {
+import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
+
+contract MessageSpaceStation is Ownable, MessageSpaceStationCore {
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
+    uint16 public constant deployChainId = L2SupportLib.NEXUS;
 
     constructor(
         address trustedSequencerAddr,
         address paymentSystemAddr,
-        uint16 chainId
-    )
-        payable
-        MessageSpaceStationCore(
-            trustedSequencerAddr,
-            paymentSystemAddr,
-            chainId
-        )
-    {}
+        address admin
+    ) payable Ownable(admin) {
+        ConfigTrustedSequencer(trustedSequencerAddr, true);
+        paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
+    }
 
     function _checkArrivalTime(
         uint64 earlistArrivalTime,
@@ -33,5 +34,13 @@ contract MessageSpaceStation is MessageSpaceStationCore {
         ) {
             revert Errors.ArrivalTimeNotMakeSense();
         }
+    }
+
+    function ChainId() public pure override returns (uint16) {
+        return deployChainId;
+    }
+
+    function Manager() public view override returns (address) {
+        return owner();
     }
 }

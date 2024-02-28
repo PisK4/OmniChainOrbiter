@@ -148,14 +148,14 @@ export async function deployMessageSpaceStation(
     messageSpaceStation = await new MessageSpaceStation__factory(signer).deploy(
       args.owner,
       args.paymentSystem,
-      1
+      args.owner
     );
 
     await messageSpaceStation.waitForDeployment();
 
     const deploymentData = await new MessageSpaceStation__factory(
       signer
-    ).getDeployTransaction(args.owner, args.paymentSystem, 1);
+    ).getDeployTransaction(args.owner, args.paymentSystem, args.owner);
 
     const estimateGas = await signer.estimateGas({
       to: ethers.ZeroAddress,

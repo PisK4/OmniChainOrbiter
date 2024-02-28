@@ -1,13 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {MessageSpaceStationCoreUg} from "./MessageSpaceStationCore.ugradable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+import {MessageSpaceStationCore} from "./MessageSpaceStationCore.sol";
+
+// import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
 
-import {Errors} from "./library/Errors.sol";
-import {L2SupportLib} from "./library/L2SupportLib.sol";
+// import {IDefaultLandingHandler} from "./interface/IDefaultLandingHandler.sol";
+// import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
 
-contract MessageSpaceStationUg is MessageSpaceStationCoreUg {
+// import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
+// import {MessageTypeLib} from "./library/MessageTypeLib.sol";
+import {L2SupportLib} from "./library/L2SupportLib.sol";
+// import {Utils} from "./library/Utils.sol";
+import {Errors} from "./library/Errors.sol";
+
+/// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
+/// Launch is the function that user or DApps send cross-chain message to orther chain
+/// Landing is the function that trusted sequencer send cross-chain message to the Station
+contract MessageSpaceStationUg is
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    MessageSpaceStationCore
+{
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
@@ -24,10 +44,13 @@ contract MessageSpaceStationUg is MessageSpaceStationCoreUg {
     ) public initializer {
         __Ownable_init(_owner);
         __UUPSUpgradeable_init();
-        MessageSpaceStationCoreUg._initialize(
-            trustedSequencerAddr,
-            paymentSystemAddr
-        );
+        TrustedSequencer[trustedSequencerAddr] = true;
+
+        if (paymentSystemAddr == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
+        emit PaymentSystemChanging(paymentSystemAddr);
     }
 
     function _authorizeUpgrade(
@@ -49,5 +72,9 @@ contract MessageSpaceStationUg is MessageSpaceStationCoreUg {
 
     function ChainId() public pure override returns (uint16) {
         return deployChainId;
+    }
+
+    function Manager() public view override returns (address) {
+        return owner();
     }
 }

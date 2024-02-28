@@ -165,6 +165,8 @@ interface IMessageSpaceStation {
     /// @return chainId, defined in the L2SupportLib.sol
     function ChainId() external view returns (uint16);
 
+    function Manager() external view returns (address);
+
     function minArrivalTime() external view returns (uint64);
 
     function maxArrivalTime() external view returns (uint64);
