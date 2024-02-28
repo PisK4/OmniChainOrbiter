@@ -4,9 +4,7 @@ pragma solidity ^0.8.23;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOmniTokenCore} from "./interface/IOmniTokenCore.sol";
-import {IMessageSpaceStation} from "../../interface/IMessageSpaceStation.sol";
 import {IMessageStruct} from "../../interface/IMessageStruct.sol";
-
 import {MessageEmitter} from "../../MessageEmitter.sol";
 import {MessageReceiver} from "../../MessageReceiver.sol";
 

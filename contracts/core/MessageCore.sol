@@ -6,6 +6,7 @@ import {IMessagePaymentSystem} from "../interface/IMessagePaymentSystem.sol";
 import {IDefaultLandingHandler} from "../interface/IDefaultLandingHandler.sol";
 import {IMessageStruct} from "../interface/IMessageStruct.sol";
 import {IMessageEvent} from "../interface/IMessageEvent.sol";
+import {IMessageChannel} from "../interface/IMessageChannel.sol";
 
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "../library/MessageTypeLib.sol";
@@ -19,6 +20,7 @@ import {Errors} from "../library/Errors.sol";
 abstract contract MessageCore is
     IMessageSpaceStation,
     IMessageEvent,
+    IMessageChannel,
     MessageMonitor
 {
     using MessageMonitorLib for mapping(bytes32 => uint24);

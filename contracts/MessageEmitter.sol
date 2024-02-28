@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
+import {IMessageChannel} from "./interface/IMessageChannel.sol";
 import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
 import {Utils} from "./library/Utils.sol";
 
@@ -40,10 +40,10 @@ abstract contract MessageEmitter is IMessageEmitter {
         returns (address)
     {}
 
-    IMessageSpaceStation public LaunchPad;
+    IMessageChannel public LaunchPad;
 
     constructor(address _LaunchPad) {
-        LaunchPad = IMessageSpaceStation(_LaunchPad);
+        LaunchPad = IMessageChannel(_LaunchPad);
     }
 
     /// @notice call this function to packet the message before sending it to the LandingPad contract

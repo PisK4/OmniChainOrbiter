@@ -18,4 +18,5 @@ library Errors {
     error LandingPadOccupied();
     error SimulateFailed(bool[] results);
     error NotImplement();
+    error SetupError();
 }

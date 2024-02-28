@@ -6,34 +6,40 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-import {INexusRelayer} from "./interface/INexusRelayer.sol";
-import {IMessageSpaceStation} from "./interface/IMessageSpaceStation.sol";
+import {IRelayer, IRelayerStorage, RelayerStorageLib} from "./interface/IRelayer.sol";
+import {IMessageStruct} from "./interface/IMessageStruct.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-contract NexusRelayer is INexusRelayer, Ownable {
+contract Relayer is IRelayer, IRelayerStorage, Ownable {
     using MessageHashUtils for bytes32;
+    using RelayerStorageLib for mapping(bytes32 => IRelayerStorage.SignedMessageStruct);
     using Utils for bytes;
     using ECDSA for bytes32;
 
-    constructor() Ownable(msg.sender) {}
+    uint8 public override SignaturesThreshold;
 
-    function verifyLaunchMessage(
+    mapping(bytes32 => SignedMessageStruct) public MessageSaved;
+
+    mapping(address => bool) public override RegistedValidator;
+
+    constructor() payable Ownable(msg.sender) {}
+
+    function VerifyLaunchMessage(
         bytes32[] memory proof,
         bool[] memory proofFlags,
         bytes32 root,
-        IMessageSpaceStation.launchMultiMsgParams[] calldata params,
+        IRelayerStorage.SignedMessageStruct[] calldata signedMessage,
         bytes[] calldata launchParamsSignatures
     ) external override {
-        address[] memory validators = _validateSignature(
-            abi.encode(params).hash(),
+        _validateSignature(
+            abi.encode(signedMessage).hash(),
             launchParamsSignatures
         );
-        // TODO: check if the validators are registered
-        (validators);
-        bytes32[] memory leaves = new bytes32[](params.length);
-        for (uint256 i = 0; i < params.length; i++) {
-            leaves[i] = abi.encode(params[i]).hash();
+        bytes32[] memory leaves = new bytes32[](signedMessage.length);
+        for (uint256 i = 0; i < signedMessage.length; i++) {
+            leaves[i] = abi.encode(signedMessage[i]).hash();
+            MessageSaved.toStorage(signedMessage[i]);
         }
 
         if (
@@ -42,13 +48,25 @@ contract NexusRelayer is INexusRelayer, Ownable {
         ) {
             revert Errors.VerifyFailed();
         }
-        emit LaunchMessageVerified(params);
+        emit LaunchMessageVerified(signedMessage);
+    }
+
+    function SetupValidator(
+        address[] calldata validators,
+        bool[] calldata statues
+    ) external override onlyOwner {
+        if (validators.length != statues.length) {
+            revert Errors.SetupError();
+        }
+        for (uint256 i = 0; i < validators.length; i++) {
+            RegistedValidator[validators[i]] = statues[i];
+        }
     }
 
     function _validateSignature(
         bytes32 encodedParams,
         bytes[] calldata launchParamsSignatures
-    ) internal pure returns (address[] memory) {
+    ) internal pure {
         // bytes32 data = abi.encode(params).hash();
 
         address[] memory validatorArray = new address[](
@@ -63,6 +81,6 @@ contract NexusRelayer is INexusRelayer, Ownable {
                 )
             );
         }
-        return validatorArray;
+        // TODO: check if the validators are registered
     }
 }
