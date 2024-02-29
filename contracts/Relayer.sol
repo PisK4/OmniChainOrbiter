@@ -39,7 +39,9 @@ contract Relayer is IRelayer, IRelayerStorage, Ownable {
         bytes32[] memory leaves = new bytes32[](signedMessage.length);
         for (uint256 i = 0; i < signedMessage.length; i++) {
             leaves[i] = abi.encode(signedMessage[i]).hash();
-            MessageSaved.toStorage(signedMessage[i]);
+            if (MessageSaved.toStorage(signedMessage[i]) == false) {
+                revert Errors.DuplicatedValue();
+            }
         }
 
         if (

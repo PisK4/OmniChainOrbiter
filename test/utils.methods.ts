@@ -127,7 +127,7 @@ export async function simulateLanding(
   try {
     await LandingPad.SimulateLanding.estimateGas(params);
   } catch (e: any) {
-    const error = e.message.match(/SimulateFailed\(\[(\w+)\]\)/);
+    const error = e.message.match(/SimulateResult\(\[(\w+)\]\)/);
     const result = error[1]
       .split(",")
       .map((v: string) => (v === "true" ? 1 : 0));

@@ -44,12 +44,6 @@ interface IMessageChannel is IMessageStruct {
         paramsBatchLanding[] calldata params
     ) external;
 
-    /// @dev for sequencer to simulate the landing message, call this function before call Landing
-    /// @param params the landing message params
-    /// check the revert message "SimulateFailed" to get the result of the simulation
-    /// for example, if the result is [true, false, true], it means the first and third message is valid, the second message is invalid
-    function SimulateLanding(paramsLanding[] calldata params) external;
-
     /// @dev feel free to call this function before pass message to the Station,
     ///      this method will return the protocol fee that the message need to pay, longer message will pay more
     /// @param params the cross-chain needed params struct

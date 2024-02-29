@@ -221,11 +221,17 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function SimulateLanding(
         paramsLanding[] calldata params
     ) external override {
-        bool[] memory success = new bool[](params.length);
+        revert Errors.SimulateResult(EstimateExcuteGas(params));
+    }
+
+    function EstimateExcuteGas(
+        paramsLanding[] calldata params
+    ) public override returns (bool[] memory) {
+        bool[] memory result = new bool[](params.length);
         for (uint256 i = 0; i < params.length; i++) {
-            success[i] = _handleInteractiveMessage(params[i]);
+            result[i] = _handleInteractiveMessage(params[i]);
         }
-        revert Errors.SimulateFailed(success);
+        return result;
     }
 
     function _handleInteractiveMessage(

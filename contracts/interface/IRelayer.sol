@@ -7,17 +7,21 @@ library RelayerStorageLib {
     function toStorage(
         mapping(bytes32 => IRelayerStorage.SignedMessageStruct) storage self,
         IRelayerStorage.SignedMessageStruct calldata signedMessage
-    ) internal {
-        self[
-            keccak256(abi.encode(signedMessage.chainId, signedMessage.txHash))
-        ] = signedMessage;
+    ) internal returns (bool messageNotSaved) {
+        bytes32 key = keccak256(
+            abi.encode(signedMessage.srcChainId, signedMessage.txHash)
+        );
+        if (self[key].txHash != bytes32(0)) {
+            return false;
+        }
+        self[key] = signedMessage;
+        return true;
     }
 }
 
 interface IRelayerStorage {
     struct SignedMessageStruct {
-        uint16 chainId;
-        bytes32 messageId;
+        uint16 srcChainId;
         bytes32 txHash;
         IMessageStruct.launchMultiMsgParams params;
     }
