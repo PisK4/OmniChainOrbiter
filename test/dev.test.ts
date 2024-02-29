@@ -35,6 +35,7 @@ import {
 } from "../scripts/deployment/utils.deployment";
 import { expect } from "chai";
 import { deployCreate3Factory } from "../scripts/ProxyDeployment/CREATE3.utils";
+import { IMessageStruct } from "../typechain-types/contracts/interface/IMessageSpaceStation";
 
 describe("OrbiterStation", () => {
   let OmniTokenChainA: OmniToken;
@@ -131,7 +132,7 @@ describe("OrbiterStation", () => {
       }
     );
 
-    const LandingParams: IMessageSpaceStation.ParamsLandingStruct = {
+    const LandingParams: IMessageStruct.ParamsLandingStruct = {
       srcChainld: 1,
       nonceLandingCurrent: 0,
       sender: params.sender,
