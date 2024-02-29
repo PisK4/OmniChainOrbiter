@@ -1,11 +1,16 @@
-const rootRequire = (name) => {
-  const path = require(`path`);
-  const rootPath = path.resolve(__dirname, `..`);
+import path from "path";
+import axios from "axios";
+import hre, { ethers } from "hardhat";
+
+const rootRequire = (name: string) => {
+  const rootPath = path.resolve(__dirname, "..");
   return require(`../../${name}`);
 };
 
-const deriveAddressOfSignerFromSig = async (txData, splitSig) => {
-  const txWithResolvedProperties = await ethers.resolveProperties(txData);
+const deriveAddressOfSignerFromSig = async (txData: any, splitSig: string) => {
+  const txWithResolvedProperties: string = await ethers.resolveProperties(
+    txData
+  );
   const txUnsignedSerialized = ethers.Transaction.from(
     txWithResolvedProperties
   ).unsignedSerialized; // returns RLP encoded tx
@@ -21,8 +26,7 @@ const deriveAddressOfSignerFromSig = async (txData, splitSig) => {
   return recoveredAddressOfSigner;
 };
 
-const getContractAbi = async (contractAddress) => {
-  const axios = require(`axios`);
+const getContractAbi = async (contractAddress: string) => {
   const httpResponse = await axios.get(
     `https://api.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.ETHERSCAN_API_KEY}`
   );
@@ -32,10 +36,10 @@ const getContractAbi = async (contractAddress) => {
   return httpResponse.data.result;
 };
 
-const verifyContract = async (address, constructorArguments) => {
+const verifyContract = async (address: string, constructorArguments: any) => {
   console.log(`Verifying contract...`);
   try {
-    await run(`verify:verify`, {
+    await hre.run(`verify:verify`, {
       address,
       constructorArguments,
     });
@@ -46,16 +50,23 @@ const verifyContract = async (address, constructorArguments) => {
   }
 };
 
-const printNativeCurrencyBalance = async (walletAddress, decimals = `ether`) =>
+const printNativeCurrencyBalance = async (
+  walletAddress: string,
+  decimals: string = `ether`
+) =>
   ethers.formatUnits(await ethers.provider.getBalance(walletAddress), decimals);
 
 const printContractBalanceOf = async (
-  tokenContract,
-  holderAddress,
-  decimals = `ether`
+  tokenContract: any,
+  holderAddress: string,
+  decimals: string = `ether`
 ) => ethers.formatUnits(await tokenContract.balanceOf(holderAddress), decimals);
 
-const getCreate3Address = async (addressOfFactory, callerAddress, salt) => {
+const getCreate3Address = async (
+  addressOfFactory: string,
+  callerAddress: string,
+  salt: string
+) => {
   const { evmVersion } = hre.config.solidity.compilers[0].settings;
 
   const bytecodeOfCreateFactory =
@@ -80,7 +91,7 @@ const getCreate3Address = async (addressOfFactory, callerAddress, salt) => {
   });
 };
 
-module.exports = {
+export {
   rootRequire,
   deriveAddressOfSignerFromSig,
   getContractAbi,

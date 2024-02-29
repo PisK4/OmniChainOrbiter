@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deployCREATE3Factory:sepolia": "npx hardhat run --network sepolia scripts/ProxyDeployment/CREATE3.utils.ts",
+    "deployCREATE3Factory:Arb-sepolia": "npx hardhat run --network Arbitrum-Sepolia scripts/ProxyDeployment/CREATE3.utils.ts"
   },
   "author": "",
   "license": "ISC",

@@ -137,11 +137,6 @@ const getGasLimit = (factory: string) => {
   }
 };
 
-deployCreate3Factory().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
-
 const CREATE3Deploy = async (
   factoryToUse: string,
   addressOfFactory: string,
@@ -315,3 +310,8 @@ const deploy = async (
       return await wallet.sendTransaction(txData, { ...feeData });
   }
 };
+
+deployCreate3Factory().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

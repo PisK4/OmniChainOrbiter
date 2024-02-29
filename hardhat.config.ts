@@ -11,11 +11,14 @@ import "@typechain/hardhat";
 import "@openzeppelin/hardhat-upgrades";
 import "@skybit/hardhat-yul";
 
+const DEFAULT_MNEMONIC =
+  "here is where your twelve words mnemonic should be put my friend";
+
 const dotenvConfigPath: string = process.env.DOTENV_CONFIG_PATH || "./.env";
 dotenvConfig({ path: resolve(__dirname, dotenvConfigPath) });
 
 // Ensure that we have all the environment variables we need.
-const mnemonic: string | undefined = process.env.MNEMONIC;
+const mnemonic: string | undefined = process.env.MNEMONIC || DEFAULT_MNEMONIC;
 if (!mnemonic) {
   throw new Error("Please set your MNEMONIC in a .env file");
 }
@@ -38,6 +41,7 @@ export const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   sepolia: 11155111,
+  "Arbitrum-Sepolia": 421614,
   goerli: 5,
   ganache: 1337,
   localhost: 313371,
@@ -66,6 +70,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break;
     case "localhost":
       jsonRpcUrl = "http://127.0.0.1:8545";
+      break;
+    case "Arbitrum-Sepolia":
+      jsonRpcUrl = "https://sepolia-rollup.arbitrum.io/rpc";
       break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
@@ -127,6 +134,7 @@ const config: HardhatUserConfig = {
     "optimism-goerli": getChainConfig("optimism-goerli"),
     "era-goerli": getChainConfig("zkSync-Era-Testnet"),
     ganache: getChainConfig("ganache"),
+    "Arbitrum-Sepolia": getChainConfig("Arbitrum-Sepolia"),
   },
   paths: {
     artifacts: "./artifacts",
@@ -157,6 +165,9 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 4000000000,
+  },
+  sourcify: {
+    enabled: true,
   },
 };
 

@@ -1,24 +1,24 @@
-const { ethers, network } = require(`hardhat`);
+import { ethers, network } from "hardhat";
 
 const fundTransactionSigner = async (
-  gasPrice,
-  gasLimit,
-  derivedAddressOfSigner,
-  wallet,
-  isDeployEnabled
-) => {
+  gasPrice: bigint,
+  gasLimit: bigint,
+  derivedAddressOfSigner: string,
+  wallet: any,
+  isDeployEnabled: boolean
+): Promise<boolean> => {
   const balanceOfSignerMinRequired = gasPrice * gasLimit;
   console.log(
     `Minimum balance of signer required based on the gasPrice and gasLimit: ${gasPrice} x ${gasLimit} wei = ${ethers.formatUnits(
       balanceOfSignerMinRequired,
-      `ether`
+      "ether"
     )} of native currency`
   );
   let balanceOfSigner = await ethers.provider.getBalance(
     derivedAddressOfSigner
   );
   console.log(
-    `balanceOfSigner: ${ethers.formatUnits(balanceOfSigner, `ether`)}`
+    `balanceOfSigner: ${ethers.formatUnits(balanceOfSigner, "ether")}`
   );
 
   const shortfall = balanceOfSignerMinRequired - balanceOfSigner;
@@ -37,7 +37,7 @@ const fundTransactionSigner = async (
           isTransferFunds = readlineSync.keyInYN(
             `Do you want to try to transfer ${ethers.formatUnits(
               shortfall,
-              `ether`
+              "ether"
             )} of native currency from your wallet ${
               wallet.address
             } to there now? `
@@ -50,7 +50,7 @@ const fundTransactionSigner = async (
           console.log(
             `Transferring ${ethers.formatUnits(
               shortfall,
-              `ether`
+              "ether"
             )} of native currency from ${
               wallet.address
             } to ${derivedAddressOfSigner} on ${network.name}...`
@@ -70,7 +70,7 @@ const fundTransactionSigner = async (
           console.log(
             `${derivedAddressOfSigner} now has ${ethers.formatUnits(
               balanceOfSigner,
-              `ether`
+              "ether"
             )} of native currency`
           );
           return true;
@@ -80,7 +80,7 @@ const fundTransactionSigner = async (
     console.log(
       `You don't have enough funds in your wallet. You'll need to transfer at least ${ethers.formatUnits(
         shortfall,
-        `ether`
+        "ether"
       )} of native currency to the address of the transaction signer: ${derivedAddressOfSigner}`
     );
     return false;
@@ -88,14 +88,17 @@ const fundTransactionSigner = async (
   return true;
 };
 
-const getArtifactOfContract = (contractName) => {
+const getArtifactOfContract = (contractName: string) => {
   // not using from hardhat artifacts directory directly because contents will automatically change if there are any changes in many variables
   const compiledArtifactFilePath = `artifacts/contracts/Proxy/${contractName}.sol/${contractName}.json`;
 
   return getSavedArtifactFile(contractName, compiledArtifactFilePath);
 };
 
-const getSavedArtifactFile = (contractName, compiledArtifactFilePath) => {
+const getSavedArtifactFile = (
+  contractName: string,
+  compiledArtifactFilePath: string
+) => {
   // compare hardhat's compiled artifact file with saved copy
   const { statSync, existsSync, cpSync } = require(`fs`);
 
@@ -148,19 +151,19 @@ const getSavedArtifactFile = (contractName, compiledArtifactFilePath) => {
 };
 
 const deployKeylessly = async (
-  contractName,
-  bytecodeWithArgs,
-  gasLimit,
-  wallet,
+  contractName: string,
+  bytecodeWithArgs: string,
+  gasLimit: bigint,
+  wallet: any,
   isDeployEnabled = true
-) => {
+): Promise<string | undefined> => {
   console.log(`Deploying ${contractName} keylessly...`);
 
   const gasPrice = 100000000000n; // = 100 Gwei. Made high for future-proofing. DON'T CHANGE IT AFTER DEPLOYING YOUR FIRST CONTRACT TO LIVE BLOCKCHAIN.
   const gasCost = await ethers.provider.estimateGas({ data: bytecodeWithArgs });
   console.log(`Expected gas cost: ${gasCost}`);
   // const gasFeeEstimate = BigInt(gasPrice) * gasCost
-  // console.log(`gasFeeEstimate: ${ethers.formatUnits(gasFeeEstimate, `ether`)} of native currency`)
+  // console.log(`gasFeeEstimate: ${ethers.formatUnits(gasFeeEstimate, 'ether')} of native currency`)
 
   const gasLimitPercentageAboveCost = Number((gasLimit * 100n) / gasCost) - 100;
   console.log(
@@ -252,8 +255,4 @@ const deployKeylessly = async (
   return addressExpected;
 };
 
-module.exports = {
-  getArtifactOfContract,
-  getSavedArtifactFile,
-  deployKeylessly,
-};
+export { getArtifactOfContract, getSavedArtifactFile, deployKeylessly };
