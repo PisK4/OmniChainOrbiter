@@ -61,4 +61,32 @@ interface IMessageChannel is IMessageStruct {
     function EstimateFee(
         launchSingleMsgParams calldata params
     ) external view returns (uint256);
+
+    /// @dev get the message launch nonce of the sender on the specific chain
+    /// @param chainId the chain id of the sender
+    /// @param sender the address of the sender
+    function GetNonceLaunch(
+        uint16 chainId,
+        address sender
+    ) external view returns (uint24);
+
+    /// @dev get the message landing nonce of the sender on the specific chain
+    /// @param chainId the chain id of the sender
+    /// @param sender the address of the sender
+    function GetNonceLanding(
+        uint16 chainId,
+        address sender
+    ) external view returns (uint24);
+
+    /// @dev get the version of the Station
+    /// @return the version of the Station, like "v1.0.0"
+    function Version() external view returns (string memory);
+
+    /// @dev get the chainId of current Station
+    /// @return chainId, defined in the L2SupportLib.sol
+    function ChainId() external view returns (uint16);
+
+    function minArrivalTime() external view returns (uint64);
+
+    function maxArrivalTime() external view returns (uint64);
 }
