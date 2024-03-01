@@ -42,6 +42,7 @@ export const chainIds = {
   "polygon-mumbai": 80001,
   sepolia: 11155111,
   "Arbitrum-Sepolia": 421614,
+  "Base-Sepolia": 84532,
   goerli: 5,
   ganache: 1337,
   localhost: 313371,
@@ -73,6 +74,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       break;
     case "Arbitrum-Sepolia":
       jsonRpcUrl = "https://sepolia-rollup.arbitrum.io/rpc";
+      break;
+    case "Base-Sepolia":
+      jsonRpcUrl = "https://rpc.notadegen.com/base/sepolia";
       break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
@@ -137,6 +141,7 @@ const config: HardhatUserConfig = {
     "era-goerli": getChainConfig("zkSync-Era-Testnet"),
     ganache: getChainConfig("ganache"),
     "Arbitrum-Sepolia": getChainConfig("Arbitrum-Sepolia"),
+    "Base-Sepolia": getChainConfig("Base-Sepolia"),
   },
   paths: {
     artifacts: "./artifacts",

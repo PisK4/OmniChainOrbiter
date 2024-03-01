@@ -159,6 +159,8 @@ const deployKeylessly = async (
 ): Promise<string | undefined> => {
   console.log(`Deploying ${contractName} keylessly...`);
 
+  // const feeData = await ethers.provider.getFeeData();
+  // const gasPrice = feeData.gasPrice! * 2n;
   const gasPrice = 100000000000n; // = 100 Gwei. Made high for future-proofing. DON'T CHANGE IT AFTER DEPLOYING YOUR FIRST CONTRACT TO LIVE BLOCKCHAIN.
   const gasCost = await ethers.provider.estimateGas({ data: bytecodeWithArgs });
   console.log(`Expected gas cost: ${gasCost}`);
