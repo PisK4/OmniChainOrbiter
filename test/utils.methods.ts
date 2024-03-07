@@ -13,6 +13,7 @@ import {
   MessagePaymentSystem,
   MessagePaymentSystem__factory,
 } from "../typechain-types";
+import { IMessageStruct } from "../typechain-types/contracts/interface/IMessageSpaceStation";
 import { ethers } from "hardhat";
 import {
   BytesLike,
@@ -40,7 +41,7 @@ export async function bridgeTransfer(
   }
 ): Promise<{
   messageId: string;
-  params: IMessageSpaceStation.LaunchSingleMsgParamsStruct;
+  params: IMessageStruct.LaunchSingleMsgParamsStruct;
 }> {
   const bridgeTransferFee = await token.fetchOmniTokenTransferFee(
     [args.destChainId],
@@ -52,13 +53,10 @@ export async function bridgeTransfer(
     await token.LaunchPad()
   );
   let messageId: string = "";
-  let params: IMessageSpaceStation.LaunchSingleMsgParamsStruct = {} as any;
+  let params: IMessageStruct.LaunchSingleMsgParamsStruct = {} as any;
   LaunchPad.on(
     "SuccessfulLaunchSingle",
-    (
-      _messageId: any,
-      _params: IMessageSpaceStation.LaunchSingleMsgParamsStruct
-    ) => {
+    (_messageId: any, _params: IMessageStruct.LaunchSingleMsgParamsStruct) => {
       messageId = _messageId;
       params = _params;
     }
@@ -97,7 +95,7 @@ export async function relayerMessage(
     mptRoot: BytesLike;
     aggregatedEarlistArrivalTime: BigNumberish;
     aggregatedLatestArrivalTime: BigNumberish;
-    params: IMessageSpaceStation.ParamsLandingStruct[];
+    params: IMessageStruct.ParamsLandingStruct[];
   }
 ) {
   const landInstance = OrbiterStation.connect(relayer).getFunction(
@@ -120,7 +118,7 @@ export async function relayerMessage(
 export async function simulateLanding(
   OrbiterStation: MessageSpaceStation,
   relayer: HardhatEthersSigner,
-  params: IMessageSpaceStation.ParamsLandingStruct[]
+  params: IMessageStruct.ParamsLandingStruct[]
 ) {
   const LandingPad: MessageSpaceStation = OrbiterStation.connect(relayer);
 

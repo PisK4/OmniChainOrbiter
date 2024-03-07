@@ -67,4 +67,12 @@ contract MessageSpaceStationUg is
     function Manager() public view override returns (address) {
         return owner();
     }
+
+    /**
+     * @dev **For Upgradeable contracts**
+     * The size of the __gap array is calculated so that the amount of storage
+     * used by a contract always adds up to the same number (in this case 50 storage slots).
+     * See https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#modifying-your-contracts
+     */
+    uint256[50] private __gap;
 }
