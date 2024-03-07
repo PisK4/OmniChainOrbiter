@@ -3,8 +3,8 @@ pragma solidity ^0.8.23;
 
 interface IMessageStruct {
     struct launchSingleMsgParams {
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
+        uint64 earlistArrivalTimestamp;
+        uint64 latestArrivalTimestamp;
         address relayer;
         address sender;
         uint16 destChainld;
@@ -13,8 +13,8 @@ interface IMessageStruct {
     }
 
     struct launchMultiMsgParams {
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
+        uint64 earlistArrivalTimestamp;
+        uint64 latestArrivalTimestamp;
         address relayer;
         address sender;
         uint16[] destChainld;
@@ -22,7 +22,7 @@ interface IMessageStruct {
         bytes[] message;
     }
 
-    struct paramsLanding {
+    struct InteractionLanding {
         uint16 srcChainld;
         uint24 nonceLandingCurrent;
         address sender;
@@ -31,7 +31,7 @@ interface IMessageStruct {
         bytes message;
     }
 
-    struct paramsBatchLanding {
+    struct PostingLanding {
         uint16 srcChainld;
         address sender;
         bytes32 messgeId;

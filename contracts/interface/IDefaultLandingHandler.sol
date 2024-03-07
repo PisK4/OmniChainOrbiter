@@ -5,6 +5,6 @@ import {IMessageSpaceStation} from "./IMessageSpaceStation.sol";
 
 interface IDefaultLandingHandler {
     function handleLandingParams(
-        IMessageSpaceStation.paramsLanding calldata params
+        IMessageSpaceStation.InteractionLanding calldata params
     ) external;
 }

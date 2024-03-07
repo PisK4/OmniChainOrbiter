@@ -68,8 +68,8 @@ struct XChainMessage {
     address to;
     uint64 sourceID;
     uint64 destID;
-    uint256 earlistArrivalTime;
-    uint256 latestArrivalTime;
+    uint256 earlistArrivalTimestamp;
+    uint256 latestArrivalTimestamp;
     address sendAddress;
     address receiveAddress;
     uint256 tokenAddress;

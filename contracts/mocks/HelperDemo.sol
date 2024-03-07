@@ -8,7 +8,7 @@ contract Helper {
     using Utils for bytes;
 
     function encodeparams(
-        IMessageSpaceStation.paramsLanding calldata params
+        IMessageSpaceStation.InteractionLanding calldata params
     ) external pure returns (bytes32 data) {
         data = abi.encode(params).hash();
     }

@@ -21,7 +21,7 @@ contract MessageSpaceStationUg is
     string public constant override Version = "v1.0.0";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
-    uint16 public constant deployChainId = L2SupportLib.NEXUS;
+    uint16 public constant deployChainId = L2SupportLib.VIZING;
 
     constructor() {
         _disableInitializers();
@@ -48,13 +48,13 @@ contract MessageSpaceStationUg is
     ) internal override onlyOwner {}
 
     function _checkArrivalTime(
-        uint64 earlistArrivalTime,
-        uint64 latestArrivalTime
+        uint64 earlistArrivalTimestamp,
+        uint64 latestArrivalTimestamp
     ) internal view override {
         if (
-            (earlistArrivalTime < block.timestamp + minArrivalTime) ||
-            (latestArrivalTime > block.timestamp + maxArrivalTime) ||
-            latestArrivalTime < earlistArrivalTime
+            (earlistArrivalTimestamp < block.timestamp + minArrivalTime) ||
+            (latestArrivalTimestamp > block.timestamp + maxArrivalTime) ||
+            latestArrivalTimestamp < earlistArrivalTimestamp
         ) {
             revert Errors.ArrivalTimeNotMakeSense();
         }

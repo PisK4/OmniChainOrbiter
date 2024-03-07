@@ -9,7 +9,7 @@ contract DefaultLandingHandler is IDefaultLandingHandler, Ownable {
     constructor() Ownable(msg.sender) {}
 
     function handleLandingParams(
-        IMessageSpaceStation.paramsLanding calldata params
+        IMessageSpaceStation.InteractionLanding calldata params
     ) external pure override {
         (params);
         // do nothing

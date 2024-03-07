@@ -12,7 +12,7 @@ interface IMessageDashboard is IMessageStruct {
     /// @return 0x01 is stop, 0x02 is start
     function isPaused() external view returns (uint8);
 
-    function mptRoot() external view returns (bytes32);
+    // function mptRoot() external view returns (bytes32);
 
     /// @dev withdraw the protocol fee from the contract, only owner can call this function
     /// @param amount the amount of the withdraw protocol fee

@@ -4,8 +4,8 @@ pragma solidity ^0.8.23;
 interface IOmniTokenCore {
     struct activateRawMsg {
         uint16[] destChainld;
-        uint64 earlistArrivalTime;
-        uint64 latestArrivalTime;
+        uint64 earlistArrivalTimestamp;
+        uint64 latestArrivalTimestamp;
         address sender;
         address relayer;
         bytes1[] mode;

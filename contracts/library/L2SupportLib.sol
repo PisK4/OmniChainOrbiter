@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 library L2SupportLib {
     uint16 constant ETHEREUM = 0x01;
-    uint16 constant NEXUS = 0x02;
+    uint16 constant VIZING = 0x02;
     uint16 constant ARBITRUM_ONE = 0x03;
     uint16 constant OPTIMISM = 0x04;
     uint16 constant MANTA_PACIFIC = 0x05;
@@ -44,5 +44,5 @@ library L2SupportLib {
     uint16 constant REDDIOEX = 0x28;
     uint16 constant FUEL_V1 = 0x29;
     uint16 constant MAX_CHAIN_ID = 0x30;
-    uint16 constant UNIVERSE_CHAIN_ID = type(uint16).max - 1;
+    uint16 constant UNIVERSE_CHAIN_ID = type(uint16).max;
 }

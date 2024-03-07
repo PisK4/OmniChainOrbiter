@@ -122,7 +122,7 @@ describe("OrbiterStation", () => {
     await OmniTokenChainA.setMirrorToken(2, await OmniTokenChainB.getAddress());
     await OmniTokenChainB.setMirrorToken(1, await OmniTokenChainA.getAddress());
 
-    const { messageId, params } = await bridgeTransfer(
+    const { nonce, params } = await bridgeTransfer(
       OmniTokenChainA,
       chainADeployer,
       {
@@ -137,7 +137,7 @@ describe("OrbiterStation", () => {
       nonceLandingCurrent: 0,
       sender: params.sender,
       value: 0,
-      messgeId: messageId,
+      messgeId: ethers.keccak256(params.message) as BytesLike,
       message: params.message,
     };
 
@@ -149,8 +149,8 @@ describe("OrbiterStation", () => {
 
     await relayerMessage(OrbiterStationChainB, chainBDeployer, {
       mptRoot: ethers.keccak256(ethers.randomBytes(32)) as BytesLike,
-      aggregatedEarlistArrivalTime: params.earlistArrivalTime,
-      aggregatedLatestArrivalTime: params.latestArrivalTime,
+      aggregatedEarlistArrivalTimestamp: params.earlistArrivalTimestamp,
+      aggregatedLatestArrivalTimestamp: params.latestArrivalTimestamp,
       params: [LandingParams],
     });
 
@@ -190,12 +190,12 @@ describe("OrbiterStation", () => {
       58000,
       100
     );
-    const latestArrivalTime = Math.floor(Date.now() / 1000) + 10000;
+    const latestArrivalTimestamp = Math.floor(Date.now() / 1000) + 10000;
     let launchMultiMsgParams: IMessageSpaceStation.launchMultiMsgParamsStruct =
       {
         destChainld: (await ethers.provider.getNetwork()).chainId,
-        earlistArrivalTime: 1,
-        latestArrivalTime: latestArrivalTime,
+        earlistArrivalTimestamp: 1,
+        latestArrivalTimestamp: latestArrivalTimestamp,
         sender: await signers[0].getAddress(),
         relayer: await signers[0].getAddress(),
         aditionParams: "0x",
@@ -221,7 +221,7 @@ describe("OrbiterStation", () => {
       await OrbiterToken.balanceOf(await signers[2].getAddress())
     );
 
-    let paramsLanding: IMessageSpaceStation.ParamsLandingStruct = {
+    let InteractionLanding: IMessageSpaceStation.ParamsLandingStruct = {
       srcChainld: 1,
       nonceLandingCurrent: 0,
       sender: await signers[0].getAddress(),
@@ -247,10 +247,12 @@ describe("OrbiterStation", () => {
 
     const encodedParamsLanding = AbiCoder.encode(
       ParamsLandingType,
-      Object.values(paramsLanding)
+      Object.values(InteractionLanding)
     );
 
-    const contractencodehash = await HelperContract.encodeparams(paramsLanding);
+    const contractencodehash = await HelperContract.encodeparams(
+      InteractionLanding
+    );
 
     const encodedParamsLandingHash = ethers.keccak256(encodedParamsLanding);
 
@@ -283,7 +285,7 @@ describe("OrbiterStation", () => {
     const tx2 = await OrbiterStation.Landing(
       // validatorSignatures,
       ["0x"],
-      paramsLanding
+      InteractionLanding
     );
     const LandingTxrecipt = await tx2.wait();
     await calculateTxGas(tx2, "Landing", true);

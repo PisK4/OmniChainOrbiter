@@ -72,16 +72,10 @@ library MessageMonitorLib {
 
     function handling(
         mapping(bytes32 => uint24) storage self,
-        uint16 srcChainId,
         uint16 destChainId,
-        address sender,
-        address launchPad
-    ) internal returns (bytes32 messageId) {
-        bytes32 nonceLaunchKey = abi.encode(destChainId, sender).hash();
-        messageId = abi
-            .encode(self[nonceLaunchKey], srcChainId, nonceLaunchKey, launchPad)
-            .hash();
-        self[nonceLaunchKey]++;
+        address sender
+    ) internal returns (uint64 nonce) {
+        return self[abi.encode(destChainId, sender).hash()]++;
     }
 
     function allocMessageId(

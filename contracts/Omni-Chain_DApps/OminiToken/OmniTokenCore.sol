@@ -242,8 +242,8 @@ abstract contract OmniTokenCore is
     ) public pure virtual returns (IMessageStruct.launchMultiMsgParams memory) {
         return
             IMessageStruct.launchMultiMsgParams(
-                rawMsg.earlistArrivalTime,
-                rawMsg.latestArrivalTime,
+                rawMsg.earlistArrivalTimestamp,
+                rawMsg.latestArrivalTimestamp,
                 rawMsg.relayer,
                 rawMsg.sender,
                 rawMsg.destChainld,

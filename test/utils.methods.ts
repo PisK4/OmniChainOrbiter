@@ -40,7 +40,7 @@ export async function bridgeTransfer(
     amount: number;
   }
 ): Promise<{
-  messageId: string;
+  nonce: BigInt;
   params: IMessageStruct.LaunchSingleMsgParamsStruct;
 }> {
   const bridgeTransferFee = await token.fetchOmniTokenTransferFee(
@@ -52,12 +52,12 @@ export async function bridgeTransfer(
   const LaunchPad = new MessageSpaceStation__factory(from).attach(
     await token.LaunchPad()
   );
-  let messageId: string = "";
+  let nonce: BigInt = BigInt(0);
   let params: IMessageStruct.LaunchSingleMsgParamsStruct = {} as any;
   LaunchPad.on(
-    "SuccessfulLaunchSingle",
-    (_messageId: any, _params: IMessageStruct.LaunchSingleMsgParamsStruct) => {
-      messageId = _messageId;
+    "SuccessfulLaunchMessage",
+    (_nonce: any, _params: IMessageStruct.LaunchSingleMsgParamsStruct) => {
+      nonce = _nonce;
       params = _params;
     }
   );
@@ -69,7 +69,7 @@ export async function bridgeTransfer(
     });
   const receipt = await tx.wait();
 
-  if (!messageId) {
+  if (!params) {
     throw new Error("Failed to get messageId and params");
   }
 
@@ -85,7 +85,7 @@ export async function bridgeTransfer(
     args.amount
   );
 
-  return { messageId, params };
+  return { nonce, params };
 }
 
 export async function relayerMessage(
@@ -93,8 +93,8 @@ export async function relayerMessage(
   relayer: HardhatEthersSigner,
   args: {
     mptRoot: BytesLike;
-    aggregatedEarlistArrivalTime: BigNumberish;
-    aggregatedLatestArrivalTime: BigNumberish;
+    aggregatedEarlistArrivalTimestamp: BigNumberish;
+    aggregatedLatestArrivalTimestamp: BigNumberish;
     params: IMessageStruct.ParamsLandingStruct[];
   }
 ) {
@@ -104,8 +104,8 @@ export async function relayerMessage(
 
   const tx = await landInstance(
     args.mptRoot,
-    args.aggregatedEarlistArrivalTime,
-    args.aggregatedLatestArrivalTime,
+    args.aggregatedEarlistArrivalTimestamp,
+    args.aggregatedLatestArrivalTimestamp,
     args.params
   );
 
