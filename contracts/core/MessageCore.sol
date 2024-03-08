@@ -114,17 +114,17 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         }
 
         if (params.destChainld.length == params.message.length) {
-            _LaunchOne2One(params);
+            emit SuccessfulLaunchMessages(_LaunchOne2One(params), params);
         } else if (
             (params.destChainld.length > 1) && (params.message.length == 1)
         ) {
-            _LaunchOne2Many(params);
+            emit SuccessfulLaunchMessages(_LaunchOne2Many(params), params);
         } else if (
             (params.destChainld.length == 1) && (params.message.length > 1)
         ) {
-            _LaunchMany2One(params);
+            emit SuccessfulLaunchMessages2(_LaunchMany2One(params), params);
         } else if (params.destChainld.length == 0) {
-            _Lanch2Universe(params);
+            emit SuccessfulLaunchMessages2(_Lanch2Universe(params), params);
         } else {
             revert Errors.InvalidMessage();
         }
@@ -145,7 +145,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         )
     {
         emit SuccessfulLaunchMessage(
-            nonceLaunch.handling(params.destChainld, params.sender),
+            nonceLaunch.update(params.destChainld, params.sender),
             params
         );
     }
@@ -228,11 +228,12 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function _handleInteractiveMessage(
         InteractionLanding calldata params
     ) internal returns (bool success) {
-        bytes1 messageType = params.message.fetchMessageType();
+        bytes1 messageType = params.message.fetchMsgMode();
         if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
             (success, ) = params.message.activateArbitrarySig();
-            // TODO: handle failed message
-            if (!success) {}
+            if (!success) {
+                revert Errors.ExcuteError(params.messgeId);
+            }
         } else {
             defaultLandingHandler.handleLandingParams(params);
         }
@@ -301,34 +302,26 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @dev Explain to a developer any extra details
     function _LaunchOne2One(
         launchMultiMsgParams calldata params
-    ) private returns (bytes32[] memory messageId) {
-        messageId = _fetchMessageIdThenUpdateNonce(
-            params,
-            params.message.length
-        );
+    ) private returns (uint24[] memory) {
+        return _fetchMessageIdThenUpdateNonce(params, params.message.length);
     }
 
     /// @notice same message will be sent to multiple chains
     /// @dev Explain to a developer any extra details
     function _LaunchOne2Many(
         launchMultiMsgParams calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.destChainld.length);
+    ) private returns (uint24[] memory) {
         return
-            messageId = _fetchMessageIdThenUpdateNonce(
-                params,
-                params.destChainld.length
-            );
+            _fetchMessageIdThenUpdateNonce(params, params.destChainld.length);
     }
 
     /// @notice many message will be sent to one chain
     /// @dev Explain to a developer any extra details
     function _LaunchMany2One(
         launchMultiMsgParams calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.message.length);
+    ) private returns (uint24) {
         return
-            messageId = _fetchMessageIdThenUpdateNonce(
+            _fetchMessageIdThenUpdateNonce(
                 params,
                 params.destChainld[0],
                 params.message.length
@@ -338,10 +331,9 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @notice the message will be sent to all chains
     function _Lanch2Universe(
         launchMultiMsgParams calldata params
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](params.message.length);
+    ) private returns (uint24) {
         return
-            messageId = _fetchMessageIdThenUpdateNonce(
+            _fetchMessageIdThenUpdateNonce(
                 params,
                 UNIVERSE_CHAIN_ID,
                 params.message.length
@@ -351,30 +343,23 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function _fetchMessageIdThenUpdateNonce(
         launchMultiMsgParams calldata params,
         uint256 loopMax
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](loopMax);
+    ) private returns (uint24[] memory) {
+        uint24[] memory nonces = new uint24[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
-            nonceLaunch.handling(params.destChainld[i], params.sender);
+            nonces[i] = nonceLaunch.update(
+                params.destChainld[i],
+                params.sender
+            );
         }
-        return messageId;
+        return nonces;
     }
 
     function _fetchMessageIdThenUpdateNonce(
         launchMultiMsgParams calldata params,
         uint16 chainId,
         uint256 loopMax
-    ) private returns (bytes32[] memory) {
-        bytes32[] memory messageId = new bytes32[](loopMax);
-        for (uint256 i = 0; i < loopMax; i++) {
-            messageId[i] = nonceLaunch.fetchMessageId(
-                ChainId(),
-                chainId,
-                params.sender,
-                address(this)
-            );
-        }
-        nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
-        return messageId;
+    ) private returns (uint24) {
+        return nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
     }
 
     function _checkArrivalTime(

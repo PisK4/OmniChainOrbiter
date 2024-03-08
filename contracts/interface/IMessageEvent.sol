@@ -5,7 +5,11 @@ import {IMessageStruct} from "./IMessageStruct.sol";
 
 interface IMessageEvent is IMessageStruct {
     event SuccessfulLaunchMessages(
-        bytes32[] indexed messageId,
+        uint24[] indexed nonce,
+        launchMultiMsgParams params
+    );
+    event SuccessfulLaunchMessages2(
+        uint24 indexed nonce,
         launchMultiMsgParams params
     );
     event SuccessfulLaunchMessage(

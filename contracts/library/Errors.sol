@@ -19,4 +19,5 @@ library Errors {
     error SimulateResult(bool[] results);
     error NotImplement();
     error SetupError();
+    error ExcuteError(bytes32 messageId);
 }

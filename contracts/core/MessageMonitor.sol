@@ -20,8 +20,8 @@ library MessageMonitorLib {
         mapping(bytes32 => uint24) storage self,
         uint16 chainId,
         address sender
-    ) internal {
-        self[abi.encode(chainId, sender).hash()]++;
+    ) internal returns (uint24 nonce) {
+        return self[abi.encode(chainId, sender).hash()]++;
     }
 
     function update(
@@ -36,8 +36,8 @@ library MessageMonitorLib {
         uint16 chainId,
         address sender,
         uint24 updateTimes
-    ) internal {
-        self[abi.encode(chainId, sender).hash()] += updateTimes;
+    ) internal returns (uint24 nonce) {
+        return self[abi.encode(chainId, sender).hash()] += updateTimes;
     }
 
     function updates(
@@ -68,21 +68,6 @@ library MessageMonitorLib {
         messageId = abi
             .encode(self[nonceLaunchKey], srcChainId, nonceLaunchKey, launchPad)
             .hash();
-    }
-
-    function handling(
-        mapping(bytes32 => uint24) storage self,
-        uint16 destChainId,
-        address sender
-    ) internal returns (uint64 nonce) {
-        return self[abi.encode(destChainId, sender).hash()]++;
-    }
-
-    function allocMessageId(
-        uint256 length
-    ) internal pure returns (bytes32[] memory) {
-        bytes32[] memory messageIds = new bytes32[](length);
-        return messageIds;
     }
 
     function fetchNonce(
