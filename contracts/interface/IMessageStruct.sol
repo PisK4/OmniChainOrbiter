@@ -36,4 +36,11 @@ interface IMessageStruct {
         address sender;
         bytes32 messgeId;
     }
+
+    struct RelayerSignedMessage {
+        bytes32 srcTxHash;
+        bytes32 destTxHash;
+        uint24[] nonceLaunch;
+        launchMultiMsgParams params;
+    }
 }

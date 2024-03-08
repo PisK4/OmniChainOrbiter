@@ -9,9 +9,9 @@ library RelayerStorageLib {
         IRelayerStorage.SignedMessageStruct calldata signedMessage
     ) internal returns (bool messageNotSaved) {
         bytes32 key = keccak256(
-            abi.encode(signedMessage.srcChainId, signedMessage.txHash)
+            abi.encode(signedMessage.srcChainId, signedMessage.srcTxHash)
         );
-        if (self[key].txHash != bytes32(0)) {
+        if (self[key].srcTxHash != bytes32(0)) {
             return false;
         }
         self[key] = signedMessage;
@@ -22,7 +22,9 @@ library RelayerStorageLib {
 interface IRelayerStorage {
     struct SignedMessageStruct {
         uint16 srcChainId;
-        bytes32 txHash;
+        uint24[] nonceLaunch;
+        bytes32 srcTxHash;
+        bytes32 destTxHash;
         IMessageStruct.launchMultiMsgParams params;
     }
 }
