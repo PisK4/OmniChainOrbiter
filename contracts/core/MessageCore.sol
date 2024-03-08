@@ -54,13 +54,14 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     modifier launchEngineCheck(
         uint64 earlistArrivalTimestamp,
         uint64 latestArrivalTimestamp,
+        uint256 value,
         uint256 protocolFee
     ) {
         if (isPaused == MessageMonitorLib.ENGINE_STOP) {
             revert Errors.StationPaused();
         }
 
-        if (msg.value < protocolFee) {
+        if (msg.value < protocolFee + value) {
             revert Errors.ValueNotMatched();
         }
 
@@ -106,6 +107,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         launchEngineCheck(
             params.earlistArrivalTimestamp,
             params.latestArrivalTimestamp,
+            _sumValueArray(params.value),
             EstimateFee(params)
         )
     {
@@ -128,8 +130,6 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         } else {
             revert Errors.InvalidMessage();
         }
-
-        // emit SuccessfulLaunchMessages(bytes32(0), params);
     }
 
     function Launch(
@@ -141,6 +141,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         launchEngineCheck(
             params.earlistArrivalTimestamp,
             params.latestArrivalTimestamp,
+            params.value,
             EstimateFee(params)
         )
     {
@@ -230,7 +231,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     ) internal returns (bool success) {
         bytes1 messageType = params.message.fetchMsgMode();
         if (messageType == MessageTypeLib.ARBITRARY_ACTIVATE) {
-            (success, ) = params.message.activateArbitrarySig();
+            (success, ) = params.message.activateArbitrarySig(params.value);
             if (!success) {
                 revert Errors.ExcuteError(params.messgeId);
             }
@@ -303,7 +304,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function _LaunchOne2One(
         launchMultiMsgParams calldata params
     ) private returns (uint24[] memory) {
-        return _fetchMessageIdThenUpdateNonce(params, params.message.length);
+        return _noncehandling(params, params.message.length);
     }
 
     /// @notice same message will be sent to multiple chains
@@ -311,8 +312,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function _LaunchOne2Many(
         launchMultiMsgParams calldata params
     ) private returns (uint24[] memory) {
-        return
-            _fetchMessageIdThenUpdateNonce(params, params.destChainld.length);
+        return _noncehandling(params, params.destChainld.length);
     }
 
     /// @notice many message will be sent to one chain
@@ -321,7 +321,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         launchMultiMsgParams calldata params
     ) private returns (uint24) {
         return
-            _fetchMessageIdThenUpdateNonce(
+            _noncehandling(
                 params,
                 params.destChainld[0],
                 params.message.length
@@ -332,15 +332,10 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function _Lanch2Universe(
         launchMultiMsgParams calldata params
     ) private returns (uint24) {
-        return
-            _fetchMessageIdThenUpdateNonce(
-                params,
-                UNIVERSE_CHAIN_ID,
-                params.message.length
-            );
+        return _noncehandling(params, UNIVERSE_CHAIN_ID, params.message.length);
     }
 
-    function _fetchMessageIdThenUpdateNonce(
+    function _noncehandling(
         launchMultiMsgParams calldata params,
         uint256 loopMax
     ) private returns (uint24[] memory) {
@@ -354,7 +349,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         return nonces;
     }
 
-    function _fetchMessageIdThenUpdateNonce(
+    function _noncehandling(
         launchMultiMsgParams calldata params,
         uint16 chainId,
         uint256 loopMax
@@ -368,6 +363,14 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     ) internal view virtual {
         (earlistArrivalTimestamp, latestArrivalTimestamp);
         // revert Errors.NotImplement();
+    }
+
+    function _sumValueArray(
+        uint256[] calldata values
+    ) internal pure returns (uint256 sum) {
+        for (uint256 i = 0; i < values.length; i++) {
+            sum += values[i];
+        }
     }
 
     function ChainId() public pure virtual override returns (uint16) {

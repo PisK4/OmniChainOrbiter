@@ -7,6 +7,7 @@ interface IMessageStruct {
         uint64 latestArrivalTimestamp;
         address relayer;
         address sender;
+        uint256 value;
         uint16 destChainld;
         bytes aditionParams;
         bytes message;
@@ -17,6 +18,7 @@ interface IMessageStruct {
         uint64 latestArrivalTimestamp;
         address relayer;
         address sender;
+        uint256[] value;
         uint16[] destChainld;
         bytes[] aditionParams;
         bytes[] message;
@@ -35,12 +37,5 @@ interface IMessageStruct {
         uint16 srcChainld;
         address sender;
         bytes32 messgeId;
-    }
-
-    struct RelayerSignedMessage {
-        bytes32 srcTxHash;
-        bytes32 destTxHash;
-        uint24[] nonceLaunch;
-        launchMultiMsgParams params;
     }
 }

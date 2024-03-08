@@ -79,15 +79,14 @@ library MessageMonitorLib {
     }
 
     function activateArbitrarySig(
-        bytes calldata message
+        bytes calldata message,
+        uint256 value
     ) internal returns (bool success, bytes memory returnData) {
         (
             address contractAddr,
             uint24 gasLimit,
             bytes memory signature
         ) = sliceMessage(message);
-
-        uint256 value = 0;
 
         // excute signature on specific contract address
         (success, returnData) = contractAddr.safeCall(

@@ -138,6 +138,7 @@ abstract contract OmniTokenCore is
                 uint64(block.timestamp + maxArrivalTime),
                 selectedRelayer,
                 msg.sender,
+                0,
                 destChainId,
                 new bytes(0),
                 abi.encodePacked(
@@ -179,6 +180,7 @@ abstract contract OmniTokenCore is
                     uint64(block.timestamp + maxArrivalTime),
                     selectedRelayer,
                     msg.sender,
+                    new uint256[](0),
                     destChainId,
                     new bytes[](0),
                     PacketMessages(mode, gasLimit, targetContract, message)
@@ -246,6 +248,7 @@ abstract contract OmniTokenCore is
                 rawMsg.latestArrivalTimestamp,
                 rawMsg.relayer,
                 rawMsg.sender,
+                new uint256[](0),
                 rawMsg.destChainld,
                 rawMsg.aditionParams,
                 PacketMessages(
