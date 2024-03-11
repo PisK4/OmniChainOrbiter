@@ -22,6 +22,7 @@ import {
   toBeArray,
   EventLog,
   BigNumberish,
+  ContractTransactionReceipt,
 } from "ethers";
 import { GasMonitor, calculateTxGas } from "../scripts/utils";
 import {
@@ -95,7 +96,7 @@ export async function relayerMessage(
     mptRoot: BytesLike;
     aggregatedEarlistArrivalTimestamp: BigNumberish;
     aggregatedLatestArrivalTimestamp: BigNumberish;
-    params: IMessageStruct.ParamsLandingStruct[];
+    params: IMessageStruct.InteractionLandingStruct[];
   }
 ) {
   const landInstance = OrbiterStation.connect(relayer).getFunction(
@@ -118,7 +119,7 @@ export async function relayerMessage(
 export async function simulateLanding(
   OrbiterStation: MessageSpaceStation,
   relayer: HardhatEthersSigner,
-  params: IMessageStruct.ParamsLandingStruct[]
+  params: IMessageStruct.InteractionLandingStruct[]
 ) {
   const LandingPad: MessageSpaceStation = OrbiterStation.connect(relayer);
 
