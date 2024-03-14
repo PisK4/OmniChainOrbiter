@@ -18,6 +18,7 @@ contract Relayer is IRelayer, IRelayerStorage, Ownable {
     using ECDSA for bytes32;
 
     uint8 public override SignaturesThreshold;
+    uint8 public override ValidatorCount;
 
     mapping(bytes32 => SignedMessageStruct) public MessageSaved;
 
@@ -62,7 +63,13 @@ contract Relayer is IRelayer, IRelayerStorage, Ownable {
         }
         for (uint256 i = 0; i < validators.length; i++) {
             RegistedValidator[validators[i]] = statues[i];
+            if (statues[i] == true) {
+                ValidatorCount++;
+            } else {
+                ValidatorCount--;
+            }
         }
+        SignaturesThreshold = (ValidatorCount + 2) / 3;
     }
 
     function _validateSignature(

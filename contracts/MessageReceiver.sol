@@ -23,26 +23,23 @@ abstract contract MessageReceiver is IMessageReceiver {
         uint64 srcChainId,
         uint24 nonce,
         address sender,
-        bytes calldata additionalInfo,
         bytes calldata message
     ) external virtual onlyLandingPad {
-        _receiveMessage(srcChainId, nonce, sender, additionalInfo, message);
+        _receiveMessage(srcChainId, nonce, sender, message);
     }
 
     /// @dev override this function to handle the cross-chain message
     /// @param srcChainId the source chain id
     /// @param nonce the message nonce
     /// @param sender the message sender from the source chain
-    /// @param additionalInfo the additional info from LandingPad contract, discuss with the Orbiter team to finalize the type of additionalInfo
     /// @param message the message from the source chain
     function _receiveMessage(
         uint64 srcChainId,
         uint24 nonce,
         address sender,
-        bytes calldata additionalInfo,
         bytes calldata message
     ) internal virtual {
-        (srcChainId, nonce, sender, additionalInfo, message);
+        (srcChainId, nonce, sender, message);
         revert NotImplement();
     }
 }

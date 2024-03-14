@@ -32,12 +32,4 @@ contract OmniToken is OmniTokenCore {
     function _tokenHandlingStrategy(uint256 amount) internal override {
         _burn(msg.sender, amount);
     }
-
-    function mint(
-        address toAddress,
-        uint256 amount
-    ) public override onlyLandingPad {
-        // require(false, "OmniToken: minting is not allowed");
-        _mint(toAddress, amount);
-    }
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IMessageChannel} from "./interface/IMessageChannel.sol";
 import {IMessageEmitter} from "./interface/IMessageEmitter.sol";
+import {IMessageReceiver} from "./interface/IMessageReceiver.sol";
 import {Utils} from "./library/Utils.sol";
 
 abstract contract MessageEmitter is IMessageEmitter {
@@ -23,6 +24,8 @@ abstract contract MessageEmitter is IMessageEmitter {
     function minGasLimit() external view virtual override returns (uint24) {}
 
     function maxGasLimit() external view virtual override returns (uint24) {}
+
+    function deployChainId() external view virtual override returns (uint16) {}
 
     function defaultBridgeMode()
         external
@@ -70,5 +73,24 @@ abstract contract MessageEmitter is IMessageEmitter {
         }
 
         return signatures;
+    }
+
+    function _fetchSignature(
+        address toAddress,
+        uint256 amount
+    ) internal view virtual returns (bytes memory signature) {
+        signature = abi.encodeCall(
+            IMessageReceiver.receiveMessage,
+            (
+                LaunchPad.ChainId(),
+                _fetchNonce(),
+                msg.sender,
+                abi.encode(toAddress, amount)
+            )
+        );
+    }
+
+    function _fetchNonce() internal view virtual returns (uint24 nonce) {
+        nonce = LaunchPad.GetNonceLaunch(LaunchPad.ChainId(), msg.sender);
     }
 }

@@ -6,7 +6,6 @@ interface IMessageReceiver {
         uint64 srcChainId,
         uint24 nonce,
         address sender,
-        bytes calldata additionalInfo,
         bytes calldata message
     ) external;
 }

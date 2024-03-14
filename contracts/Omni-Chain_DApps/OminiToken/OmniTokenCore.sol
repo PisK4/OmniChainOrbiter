@@ -5,6 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOmniTokenCore} from "./interface/IOmniTokenCore.sol";
 import {IMessageStruct} from "../../interface/IMessageStruct.sol";
+import {IMessageReceiver} from "../../interface/IMessageReceiver.sol";
 import {MessageEmitter} from "../../MessageEmitter.sol";
 import {MessageReceiver} from "../../MessageReceiver.sol";
 
@@ -23,7 +24,7 @@ abstract contract OmniTokenCore is
     uint24 public immutable override maxGasLimit;
     bytes1 public immutable override defaultBridgeMode;
     address public immutable override selectedRelayer;
-
+    uint16 public immutable override deployChainId;
     // mirror OmniToken : mirrorToken[chainId] = address
     mapping(uint16 => address) public mirrorToken;
 
@@ -40,6 +41,7 @@ abstract contract OmniTokenCore is
         Ownable(msg.sender)
     {
         defaultBridgeMode = _defaultBridgeMode;
+        deployChainId = LaunchPad.ChainId();
     }
 
     function mint(
@@ -51,22 +53,6 @@ abstract contract OmniTokenCore is
 
     function decimals() public view virtual override returns (uint8) {
         return 6;
-    }
-
-    function _receiveMessage(
-        uint64 srcChainId,
-        uint24 nonce,
-        address sender,
-        bytes calldata additionalInfo,
-        bytes calldata message
-    ) internal virtual override {
-        (srcChainId, nonce, sender, additionalInfo);
-        // decode the message, args is for mint(address toAddress, uint256 amount)
-        (address toAddress, uint256 amount) = abi.decode(
-            message,
-            (address, uint256)
-        );
-        mint(toAddress, amount);
     }
 
     function bridgeTransfer(
@@ -83,20 +69,6 @@ abstract contract OmniTokenCore is
         address tokenAddress
     ) external onlyOwner {
         mirrorToken[chainId] = tokenAddress;
-    }
-
-    /// @dev bellow are the virtual functions, feel free to override them in your own contract.
-    /// for Example, you can override the _tokenHandlingStrategy,
-    /// instead of burning the token, you can transfer the token to a specific address.
-    function _tokenHandlingStrategy(uint256 amount) internal virtual {
-        _burn(msg.sender, amount);
-    }
-
-    function _fetchSignature(
-        address toAddress,
-        uint256 amount
-    ) internal pure virtual returns (bytes memory signature) {
-        signature = abi.encodeCall(IOmniTokenCore.mint, (toAddress, amount));
     }
 
     function bridgeTransferHandler(
@@ -258,5 +230,46 @@ abstract contract OmniTokenCore is
                     rawMsg.message
                 )
             );
+    }
+
+    /// @dev bellow are the virtual functions, feel free to override them in your own contract.
+    /// for Example, you can override the _tokenHandlingStrategy,
+    /// instead of burning the token, you can transfer the token to a specific address.
+    function _tokenHandlingStrategy(uint256 amount) internal virtual {
+        _burn(msg.sender, amount);
+    }
+
+    /// @dev we override this function because mint() method implements permission checking for the landing pad,
+    ///         so it can be called here.
+    function _fetchSignature(
+        address toAddress,
+        uint256 amount
+    ) internal view virtual override returns (bytes memory signature) {
+        signature = abi.encodeCall(IOmniTokenCore.mint, (toAddress, amount));
+    }
+
+    function _fetchNonce()
+        internal
+        view
+        virtual
+        override
+        returns (uint24 nonce)
+    {
+        // no need
+    }
+
+    function _receiveMessage(
+        uint64 srcChainId,
+        uint24 nonce,
+        address sender,
+        bytes calldata message
+    ) internal virtual override {
+        (srcChainId, nonce, sender);
+        // decode the message, args is for mint(address toAddress, uint256 amount)
+        (address toAddress, uint256 amount) = abi.decode(
+            message,
+            (address, uint256)
+        );
+        mint(toAddress, amount);
     }
 }

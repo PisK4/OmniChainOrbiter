@@ -46,6 +46,8 @@ interface IRelayer {
 
     function SignaturesThreshold() external returns (uint8);
 
+    function ValidatorCount() external returns (uint8);
+
     function SetupValidator(
         address[] calldata validators,
         bool[] calldata statues
