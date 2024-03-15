@@ -21,13 +21,13 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
-    uint16 immutable UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
+    uint16 constant UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 public override isPaused;
 
     /// @dev reentrancy guard
-    uint8 private _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
+    uint8 internal _isLanding;
 
     /// @dev handle default landing mode contract address
     IDefaultLandingHandler public defaultLandingHandler;

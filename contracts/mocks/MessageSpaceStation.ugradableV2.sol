@@ -4,28 +4,29 @@ pragma solidity ^0.8.23;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {MessageCore, MessageMonitorLib} from "./core/MessageCore.sol";
-import {IMessagePaymentSystem} from "./interface/IMessagePaymentSystem.sol";
-import {L2SupportLib} from "./library/L2SupportLib.sol";
-import {Errors} from "./library/Errors.sol";
+import {MessageCore, MessageMonitorLib} from "../core/MessageCore.sol";
+import {IMessagePaymentSystem} from "../interface/IMessagePaymentSystem.sol";
+import {L2SupportLib} from "../library/L2SupportLib.sol";
+import {Errors} from "../library/Errors.sol";
+import "hardhat/console.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted sequencer send cross-chain message to the Station
-contract MessageSpaceStationUg is
+contract MessageSpaceStationUgv2 is
     Initializable,
     OwnableUpgradeable,
     UUPSUpgradeable,
     MessageCore
 {
-    string public constant override Version = "v1.0.0";
+    string public constant override Version = "v5.3.a-beta";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
     uint16 public constant deployChainId = L2SupportLib.VIZING;
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function initialize(
         address trustedSequencerAddr,
@@ -42,6 +43,11 @@ contract MessageSpaceStationUg is
         }
         paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
         emit PaymentSystemChanging(paymentSystemAddr);
+    }
+
+    function setConfiguration(bytes calldata config) external view onlyManager {
+        (config);
+        console.log("setConfiguration");
     }
 
     function _authorizeUpgrade(
@@ -67,11 +73,6 @@ contract MessageSpaceStationUg is
 
     function Manager() public view override returns (address) {
         return owner();
-    }
-
-    function setConfiguration(bytes calldata config) external view onlyManager {
-        (config);
-        revert Errors.NotImplement();
     }
 
     /**
