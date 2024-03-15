@@ -38,4 +38,12 @@ interface IMessageStruct {
         address sender;
         bytes32 messgeId;
     }
+
+    struct SignedMessageStruct {
+        uint16 srcChainId;
+        uint24[] nonceLaunch;
+        bytes32 srcTxHash;
+        bytes32 destTxHash;
+        IMessageStruct.launchMultiMsgParams params;
+    }
 }

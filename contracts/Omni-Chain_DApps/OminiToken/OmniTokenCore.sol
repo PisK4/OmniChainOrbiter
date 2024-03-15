@@ -244,18 +244,8 @@ abstract contract OmniTokenCore is
     function _fetchSignature(
         address toAddress,
         uint256 amount
-    ) internal view virtual override returns (bytes memory signature) {
+    ) internal view virtual returns (bytes memory signature) {
         signature = abi.encodeCall(IOmniTokenCore.mint, (toAddress, amount));
-    }
-
-    function _fetchNonce()
-        internal
-        view
-        virtual
-        override
-        returns (uint24 nonce)
-    {
-        // no need
     }
 
     function _receiveMessage(

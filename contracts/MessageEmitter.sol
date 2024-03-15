@@ -76,17 +76,11 @@ abstract contract MessageEmitter is IMessageEmitter {
     }
 
     function _fetchSignature(
-        address toAddress,
-        uint256 amount
+        bytes memory message
     ) internal view virtual returns (bytes memory signature) {
         signature = abi.encodeCall(
             IMessageReceiver.receiveMessage,
-            (
-                LaunchPad.ChainId(),
-                _fetchNonce(),
-                msg.sender,
-                abi.encode(toAddress, amount)
-            )
+            (LaunchPad.ChainId(), _fetchNonce(), msg.sender, message)
         );
     }
 

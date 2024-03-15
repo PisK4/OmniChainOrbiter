@@ -5,22 +5,21 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-
-import {IRelayer, IRelayerStorage, RelayerStorageLib} from "./interface/IRelayer.sol";
+import {IRelayer, RelayerStorageLib} from "./interface/IRelayer.sol";
 import {IMessageStruct} from "./interface/IMessageStruct.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-contract Relayer is IRelayer, IRelayerStorage, Ownable {
+contract Relayer is IRelayer, Ownable {
     using MessageHashUtils for bytes32;
-    using RelayerStorageLib for mapping(bytes32 => IRelayerStorage.SignedMessageStruct);
+    using RelayerStorageLib for mapping(bytes32 => IMessageStruct.SignedMessageStruct);
     using Utils for bytes;
     using ECDSA for bytes32;
 
     uint8 public override SignaturesThreshold;
     uint8 public override ValidatorCount;
 
-    mapping(bytes32 => SignedMessageStruct) public MessageSaved;
+    mapping(bytes32 => IMessageStruct.SignedMessageStruct) public MessageSaved;
 
     mapping(address => bool) public override RegistedValidator;
 
@@ -30,7 +29,7 @@ contract Relayer is IRelayer, IRelayerStorage, Ownable {
         bytes32[] memory proof,
         bool[] memory proofFlags,
         bytes32 root,
-        IRelayerStorage.SignedMessageStruct[] calldata signedMessage,
+        IMessageStruct.SignedMessageStruct[] calldata signedMessage,
         bytes[] calldata launchParamsSignatures
     ) external override {
         _validateSignature(

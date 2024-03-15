@@ -122,11 +122,11 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
     function withdrawRequest() external onlyValidator {
         uint64 targetWithdrawTime = uint64(block.timestamp) + _withdrawDelay;
         _withdrawRequestList[msg.sender] = targetWithdrawTime;
-        emit WithdarwRequest(msg.sender, targetWithdrawTime);
+        emit WithdrawRequestEmit(msg.sender, targetWithdrawTime);
     }
 
     /// @notice once the withdraw delay time is reached, you can call this function to withdraw eth
-    function withdarw(
+    function Withdraw(
         bytes32[] calldata proof,
         uint256 amount
     ) external override onlyValidator {
@@ -152,7 +152,7 @@ contract DepositSpaceStation is IDepositSpaceStation, Ownable {
             revert Errors.WithdrawError();
         }
 
-        emit Withdarw(msg.sender);
+        emit ValidatorWithdraw(msg.sender, amount);
     }
 
     function verifySmtRoot(

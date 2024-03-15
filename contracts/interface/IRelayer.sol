@@ -5,8 +5,8 @@ import {IMessageStruct} from "./IMessageStruct.sol";
 
 library RelayerStorageLib {
     function toStorage(
-        mapping(bytes32 => IRelayerStorage.SignedMessageStruct) storage self,
-        IRelayerStorage.SignedMessageStruct calldata signedMessage
+        mapping(bytes32 => IMessageStruct.SignedMessageStruct) storage self,
+        IMessageStruct.SignedMessageStruct calldata signedMessage
     ) internal returns (bool messageNotSaved) {
         bytes32 key = keccak256(
             abi.encode(signedMessage.srcChainId, signedMessage.srcTxHash)
@@ -19,26 +19,16 @@ library RelayerStorageLib {
     }
 }
 
-interface IRelayerStorage {
-    struct SignedMessageStruct {
-        uint16 srcChainId;
-        uint24[] nonceLaunch;
-        bytes32 srcTxHash;
-        bytes32 destTxHash;
-        IMessageStruct.launchMultiMsgParams params;
-    }
-}
-
 interface IRelayer {
     event LaunchMessageVerified(
-        IRelayerStorage.SignedMessageStruct[] indexed signedMessage
+        IMessageStruct.SignedMessageStruct[] indexed signedMessage
     );
 
     function VerifyLaunchMessage(
         bytes32[] memory proof,
         bool[] memory proofFlags,
         bytes32 root,
-        IRelayerStorage.SignedMessageStruct[] calldata signedMessage,
+        IMessageStruct.SignedMessageStruct[] calldata signedMessage,
         bytes[] calldata launchParamsSignatures
     ) external;
 

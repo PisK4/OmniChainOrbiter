@@ -167,7 +167,6 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         )
     {
         (mptRootNew);
-
         for (uint256 i = 0; i < params.length; i++) {
             emit SuccessfulBatchLanding(params[i].messgeId, params[i]);
         }
@@ -190,21 +189,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         )
     {
         (mptRootNew);
-
         for (uint256 i = 0; i < params.length; i++) {
-            // if (params[i].value < msg.value) {
-            //     revert Errors.ValueNotMatched();
-            // }
-            // if (
-            //     nonceLanding.compare(
-            //         params[i].srcChainld,
-            //         params[i].sender,
-            //         params[i].nonceLandingCurrent
-            //     ) != true
-            // ) {
-            //     revert Errors.NonceNotMatched();
-            // }
-            // nonceLanding.update(ChainId(), params[i].sender);
             _handleInteractiveMessage(params[i]);
             emit SuccessfulLanding(params[i].messgeId, params[i]);
         }
@@ -249,11 +234,12 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         emit EngineStatusRefreshing(stop);
     }
 
-    function Withdarw(uint256 amount) external override {
+    function Withdraw(uint256 amount) external override {
         (bool sent, ) = payable(Manager()).call{value: amount}("");
         if (!sent) {
             revert Errors.WithdrawError();
         }
+        emit WithdrawRequest(amount);
     }
 
     function SetPaymentSystem(
@@ -283,6 +269,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         bool state
     ) public override onlyManager {
         TrustedSequencer[trustedSequencerAddr] = state;
+        emit SequencerStatusChanging(trustedSequencerAddr, state);
     }
 
     function GetNonceLaunch(

@@ -3,8 +3,11 @@ pragma solidity ^0.8.23;
 
 interface IDepositSpaceStation {
     event Register(address indexed newValidator, uint256 amount);
-    event WithdarwRequest(address indexed validator, uint64 targetWithdrawTime);
-    event Withdarw(address indexed validator);
+    event WithdrawRequestEmit(
+        address indexed validator,
+        uint64 targetWithdrawTime
+    );
+    event ValidatorWithdraw(address indexed validator, uint256 amount);
 
     function setMinimalDeposit(uint256 amount) external;
 
@@ -20,5 +23,5 @@ interface IDepositSpaceStation {
 
     function register() external payable;
 
-    function withdarw(bytes32[] calldata proof, uint256 amount) external;
+    function Withdraw(bytes32[] calldata proof, uint256 amount) external;
 }

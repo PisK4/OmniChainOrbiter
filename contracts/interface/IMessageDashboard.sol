@@ -16,7 +16,7 @@ interface IMessageDashboard is IMessageStruct {
 
     /// @dev withdraw the protocol fee from the contract, only owner can call this function
     /// @param amount the amount of the withdraw protocol fee
-    function Withdarw(uint256 amount) external;
+    function Withdraw(uint256 amount) external;
 
     /// @dev set the payment system address, only owner can call this function
     /// @param paymentSystemAddress the address of the payment system
