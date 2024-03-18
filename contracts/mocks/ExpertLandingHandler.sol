@@ -3,9 +3,9 @@ pragma solidity ^0.8.23;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IMessageSpaceStation} from "../interface/IMessageSpaceStation.sol";
-import {IDefaultLandingHandler} from "../interface/IDefaultLandingHandler.sol";
+import {IExpertLandingHandler} from "../interface/IExpertLandingHandler.sol";
 
-contract DefaultLandingHandler is IDefaultLandingHandler, Ownable {
+contract ExpertLandingHandler is IExpertLandingHandler, Ownable {
     constructor() Ownable(msg.sender) {}
 
     function handleLandingParams(

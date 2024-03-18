@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IMessageSpaceStation} from "../interface/IMessageSpaceStation.sol";
 import {IMessagePaymentSystem} from "../interface/IMessagePaymentSystem.sol";
-import {IDefaultLandingHandler} from "../interface/IDefaultLandingHandler.sol";
+import {IExpertLandingHandler} from "../interface/IExpertLandingHandler.sol";
 import {MessageMonitor, MessageMonitorLib} from "./MessageMonitor.sol";
 import {MessageTypeLib} from "../library/MessageTypeLib.sol";
 import {L2SupportLib} from "../library/L2SupportLib.sol";
@@ -24,21 +24,19 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     uint16 constant UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
-    uint8 public override isPaused;
+    uint8 internal _isPaused;
 
     /// @dev reentrancy guard
     uint8 internal _isLanding;
 
     /// @dev handle default landing mode contract address
-    IDefaultLandingHandler public defaultLandingHandler;
+    IExpertLandingHandler public ExpertLandingHandler;
 
     /// @dev protocol fee payment system address
     IMessagePaymentSystem public paymentSystem;
 
     /// @dev trusted sequencer, we will execute the message from this address
     mapping(address => bool) public override TrustedSequencer;
-
-    // bytes32 public override mptRoot;
 
     receive() external payable {}
 
@@ -57,7 +55,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         uint256 value,
         uint256 protocolFee
     ) {
-        if (isPaused == MessageMonitorLib.ENGINE_STOP) {
+        if (isPaused() != MessageMonitorLib.ENGINE_START) {
             revert Errors.StationPaused();
         }
 
@@ -69,23 +67,23 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         _;
     }
 
-    modifier landinglaunchEngineCheck() {
-        if (isPaused == MessageMonitorLib.ENGINE_STOP) {
+    modifier landingEngineCheck() {
+        if (isPaused() != MessageMonitorLib.ENGINE_START) {
             revert Errors.StationPaused();
         }
-        if (_isLanding == MessageMonitorLib.LANDING_PAD_OCCUPIED) {
+        if (isLanding() != MessageMonitorLib.LANDING_PAD_FREE) {
             revert Errors.LandingPadOccupied();
         }
-        _isLanding = MessageMonitorLib.LANDING_PAD_OCCUPIED;
+        _setLanding(MessageMonitorLib.LANDING_PAD_OCCUPIED);
         _;
-        _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
+        _setLanding(MessageMonitorLib.LANDING_PAD_FREE);
     }
 
     modifier cargoInspection(
         uint64 aggregatedEarlistArrivalTimestamp,
         uint64 aggregatedLatestArrivalTimestamp
     ) {
-        if (TrustedSequencer[msg.sender] != true) {
+        if (!isTrustedSequencer(msg.sender)) {
             revert Errors.AccessDenied();
         }
 
@@ -160,7 +158,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     )
         external
         override
-        landinglaunchEngineCheck
+        landingEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTimestamp,
             aggregatedLatestArrivalTimestamp
@@ -182,7 +180,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         external
         payable
         override
-        landinglaunchEngineCheck
+        landingEngineCheck
         cargoInspection(
             aggregatedEarlistArrivalTimestamp,
             aggregatedLatestArrivalTimestamp
@@ -221,15 +219,17 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
                 revert Errors.ExcuteError(params.messgeId);
             }
         } else {
-            defaultLandingHandler.handleLandingParams(params);
+            ExpertLandingHandler.handleLandingParams(params);
         }
     }
 
     function PauseEngine(bool stop) external override onlyManager {
         if (stop) {
-            isPaused = MessageMonitorLib.ENGINE_STOP;
+            // isPaused = MessageMonitorLib.ENGINE_STOP;
+            _setPaused(MessageMonitorLib.ENGINE_STOP);
         } else {
-            isPaused = MessageMonitorLib.ENGINE_START;
+            // isPaused = MessageMonitorLib.ENGINE_START;
+            _setPaused(MessageMonitorLib.ENGINE_START);
         }
         emit EngineStatusRefreshing(stop);
     }
@@ -270,6 +270,12 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     ) public override onlyManager {
         TrustedSequencer[trustedSequencerAddr] = state;
         emit SequencerStatusChanging(trustedSequencerAddr, state);
+    }
+
+    function isTrustedSequencer(
+        address addr
+    ) public view override returns (bool) {
+        return TrustedSequencer[addr];
     }
 
     function GetNonceLaunch(
@@ -358,6 +364,22 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         for (uint256 i = 0; i < values.length; i++) {
             sum += values[i];
         }
+    }
+
+    function isPaused() public view override returns (uint8) {
+        return _isPaused;
+    }
+
+    function _setPaused(uint8 state) internal {
+        _isPaused = state;
+    }
+
+    function isLanding() public view returns (uint8) {
+        return _isLanding;
+    }
+
+    function _setLanding(uint8 state) internal {
+        _isLanding = state;
     }
 
     function ChainId() public pure virtual override returns (uint16) {

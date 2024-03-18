@@ -30,6 +30,8 @@ interface IMessageDashboard is IMessageStruct {
         bool state
     ) external;
 
+    function isTrustedSequencer(address) external view returns (bool);
+
     /// @dev trusted sequencer, we will execute the message from this address
     /// @return true is trusted sequencer, false is not
     function TrustedSequencer(address) external view returns (bool);

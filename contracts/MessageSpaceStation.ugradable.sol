@@ -36,6 +36,7 @@ contract MessageSpaceStationUg is
         __UUPSUpgradeable_init();
         TrustedSequencer[trustedSequencerAddr] = true;
         _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
+        _isPaused = MessageMonitorLib.ENGINE_START;
 
         if (paymentSystemAddr == address(0)) {
             revert Errors.InvalidAddress();
