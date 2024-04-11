@@ -14,7 +14,7 @@ interface IMessageChannel is IMessageStruct {
     function Launch(launchSingleMsgParams calldata params) external payable;
 
     /// @notice batch landing message to the chain, execute the landing message
-    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
+    /// @dev trusted relayer will call this function to send cross-chain message to the Station
     /// @param mptRootNew the merkle patricia trie root of the message
     /// @param aggregatedEarlistArrivalTimestamp the earlist arrival time of the message
     /// @param aggregatedLatestArrivalTimestamp the latest arrival time of the message
@@ -27,7 +27,7 @@ interface IMessageChannel is IMessageStruct {
     ) external payable;
 
     /// @notice batch landing message to the chain, only post the landing message to the chain
-    /// @dev trusted sequencer will call this function to send cross-chain message to the Station
+    /// @dev trusted relayer will call this function to send cross-chain message to the Station
     /// @param mptRootNew the merkle patricia trie root of the message
     /// @param aggregatedEarlistArrivalTimestamp the earlist arrival time of the message
     /// @param aggregatedLatestArrivalTimestamp the latest arrival time of the message

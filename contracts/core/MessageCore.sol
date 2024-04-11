@@ -12,7 +12,7 @@ import {Errors} from "../library/Errors.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
-/// Landing is the function that trusted sequencer send cross-chain message to the Station
+/// Landing is the function that trusted relayer send cross-chain message to the Station
 abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     using MessageMonitorLib for mapping(bytes32 => uint24);
     using MessageMonitorLib for uint256;
@@ -35,8 +35,8 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @dev protocol fee payment system address
     IMessagePaymentSystem public paymentSystem;
 
-    /// @dev trusted sequencer, we will execute the message from this address
-    mapping(address => bool) public override TrustedSequencer;
+    /// @dev trusted relayer, we will execute the message from this address
+    mapping(address => bool) public override TrustedRelayer;
 
     receive() external payable {}
 
@@ -83,7 +83,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         uint64 aggregatedEarlistArrivalTimestamp,
         uint64 aggregatedLatestArrivalTimestamp
     ) {
-        if (!isTrustedSequencer(msg.sender)) {
+        if (!isTrustedRelayer(msg.sender)) {
             revert Errors.AccessDenied();
         }
 
@@ -264,18 +264,18 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         return paymentSystem.EstimateFee_(params);
     }
 
-    function ConfigTrustedSequencer(
-        address trustedSequencerAddr,
+    function ConfigTrustedRelayer(
+        address trustedRelayerAddr,
         bool state
     ) public override onlyManager {
-        TrustedSequencer[trustedSequencerAddr] = state;
-        emit SequencerStatusChanging(trustedSequencerAddr, state);
+        TrustedRelayer[trustedRelayerAddr] = state;
+        emit SequencerStatusChanging(trustedRelayerAddr, state);
     }
 
-    function isTrustedSequencer(
+    function isTrustedRelayer(
         address addr
     ) public view override returns (bool) {
-        return TrustedSequencer[addr];
+        return TrustedRelayer[addr];
     }
 
     function GetNonceLaunch(

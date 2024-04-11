@@ -22,19 +22,19 @@ interface IMessageDashboard is IMessageStruct {
     /// @param paymentSystemAddress the address of the payment system
     function SetPaymentSystem(address paymentSystemAddress) external;
 
-    /// @dev config the trusted sequencer address, only owner can call this function
-    /// @param trustedSequencerAddr the address of the trusted sequencer
+    /// @dev config the trusted relayer address, only owner can call this function
+    /// @param trustedRelayerAddr the address of the trusted relayer
     /// @param state true is add, false is remove
-    function ConfigTrustedSequencer(
-        address trustedSequencerAddr,
+    function ConfigTrustedRelayer(
+        address trustedRelayerAddr,
         bool state
     ) external;
 
-    function isTrustedSequencer(address) external view returns (bool);
+    function isTrustedRelayer(address) external view returns (bool);
 
-    /// @dev trusted sequencer, we will execute the message from this address
-    /// @return true is trusted sequencer, false is not
-    function TrustedSequencer(address) external view returns (bool);
+    /// @dev trusted relayer, we will execute the message from this address
+    /// @return true is trusted relayer, false is not
+    function TrustedRelayer(address) external view returns (bool);
 
     function Manager() external view returns (address);
 }

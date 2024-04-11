@@ -14,11 +14,11 @@ contract MessageSpaceStation is Ownable, MessageCore {
     uint16 public constant deployChainId = L2SupportLib.VIZING;
 
     constructor(
-        address trustedSequencerAddr,
+        address trustedRelayerAddr,
         address paymentSystemAddr,
         address admin
     ) payable Ownable(admin) {
-        ConfigTrustedSequencer(trustedSequencerAddr, true);
+        ConfigTrustedRelayer(trustedRelayerAddr, true);
         paymentSystem = IMessagePaymentSystem(paymentSystemAddr);
     }
 
@@ -27,9 +27,10 @@ contract MessageSpaceStation is Ownable, MessageCore {
         uint64 latestArrivalTimestamp
     ) internal view override {
         if (
-            (earlistArrivalTimestamp < block.timestamp + minArrivalTime) ||
-            (latestArrivalTimestamp > block.timestamp + maxArrivalTime) ||
-            latestArrivalTimestamp < earlistArrivalTimestamp
+            (earlistArrivalTimestamp > 0 && latestArrivalTimestamp > 0) &&
+            ((earlistArrivalTimestamp < block.timestamp + minArrivalTime) ||
+                (latestArrivalTimestamp > block.timestamp + maxArrivalTime) ||
+                latestArrivalTimestamp < earlistArrivalTimestamp)
         ) {
             revert Errors.ArrivalTimeNotMakeSense();
         }

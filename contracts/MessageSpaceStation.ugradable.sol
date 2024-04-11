@@ -11,7 +11,7 @@ import {Errors} from "./library/Errors.sol";
 
 /// the MessageSpaceStation is a contract that user can send cross-chain message to orther chain
 /// Launch is the function that user or DApps send cross-chain message to orther chain
-/// Landing is the function that trusted sequencer send cross-chain message to the Station
+/// Landing is the function that trusted relayer send cross-chain message to the Station
 contract MessageSpaceStationUg is
     Initializable,
     OwnableUpgradeable,
@@ -28,13 +28,13 @@ contract MessageSpaceStationUg is
     }
 
     function initialize(
-        address trustedSequencerAddr,
+        address trustedRelayerAddr,
         address paymentSystemAddr,
         address _owner
     ) public initializer {
         __Ownable_init(_owner);
         __UUPSUpgradeable_init();
-        TrustedSequencer[trustedSequencerAddr] = true;
+        TrustedRelayer[trustedRelayerAddr] = true;
         _isLanding = MessageMonitorLib.LANDING_PAD_FREE;
         _isPaused = MessageMonitorLib.ENGINE_START;
 
@@ -54,9 +54,10 @@ contract MessageSpaceStationUg is
         uint64 latestArrivalTimestamp
     ) internal view override {
         if (
-            (earlistArrivalTimestamp < block.timestamp + minArrivalTime) ||
-            (latestArrivalTimestamp > block.timestamp + maxArrivalTime) ||
-            latestArrivalTimestamp < earlistArrivalTimestamp
+            (earlistArrivalTimestamp > 0 && latestArrivalTimestamp > 0) &&
+            ((earlistArrivalTimestamp < block.timestamp + minArrivalTime) ||
+                (latestArrivalTimestamp > block.timestamp + maxArrivalTime) ||
+                latestArrivalTimestamp < earlistArrivalTimestamp)
         ) {
             revert Errors.ArrivalTimeNotMakeSense();
         }
