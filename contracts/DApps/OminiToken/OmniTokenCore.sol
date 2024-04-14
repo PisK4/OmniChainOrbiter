@@ -24,9 +24,9 @@ abstract contract OmniTokenCore is
     uint24 public immutable override maxGasLimit;
     bytes1 public immutable override defaultBridgeMode;
     address public immutable override selectedRelayer;
-    uint16 public immutable override deployChainId;
+    uint64 public immutable override deployChainId;
     // mirror OmniToken : mirrorToken[chainId] = address
-    mapping(uint16 => address) public mirrorToken;
+    mapping(uint64 => address) public mirrorToken;
 
     constructor(
         string memory _name,
@@ -56,7 +56,7 @@ abstract contract OmniTokenCore is
     }
 
     function bridgeTransfer(
-        uint16 destChainId,
+        uint64 destChainId,
         address receiver,
         uint256 amount
     ) external payable virtual override {
@@ -65,7 +65,7 @@ abstract contract OmniTokenCore is
     }
 
     function setMirrorToken(
-        uint16 chainId,
+        uint64 chainId,
         address tokenAddress
     ) external onlyOwner {
         mirrorToken[chainId] = tokenAddress;
@@ -100,7 +100,7 @@ abstract contract OmniTokenCore is
     }
 
     function bridgeTransferHandler(
-        uint16 destChainId,
+        uint64 destChainId,
         address receiver,
         uint256 amount
     ) public payable virtual {
@@ -127,7 +127,7 @@ abstract contract OmniTokenCore is
     /// @dev if your token would charge a extra fee, you can override this function
     /// @return the fee of the bridge transfer
     function fetchOmniTokenTransferFee(
-        uint16[] calldata destChainId,
+        uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
     ) external view virtual override returns (uint256) {
@@ -161,7 +161,7 @@ abstract contract OmniTokenCore is
     }
 
     function _allocMemory(
-        uint16[] calldata destChainId,
+        uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
     )

@@ -16,7 +16,7 @@ interface IMessageEmitter {
 
     function selectedRelayer() external view returns (address);
 
-    function deployChainId() external view returns (uint16);
+    function deployChainId() external view returns (uint64);
 
     function PacketMessages(
         bytes1[] memory mode,

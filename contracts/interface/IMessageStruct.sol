@@ -8,7 +8,7 @@ interface IMessageStruct {
         address relayer;
         address sender;
         uint256 value;
-        uint16 destChainld;
+        uint64 destChainld;
         bytes aditionParams;
         bytes message;
     }
@@ -19,13 +19,13 @@ interface IMessageStruct {
         address relayer;
         address sender;
         uint256[] value;
-        uint16[] destChainld;
+        uint64[] destChainld;
         bytes[] aditionParams;
         bytes[] message;
     }
 
     struct InteractionLanding {
-        uint16 srcChainld;
+        uint64 srcChainld;
         uint24 nonceLandingCurrent;
         address sender;
         uint256 value;
@@ -34,13 +34,13 @@ interface IMessageStruct {
     }
 
     struct PostingLanding {
-        uint16 srcChainld;
+        uint64 srcChainld;
         address sender;
         bytes32 messgeId;
     }
 
     struct SignedMessageStruct {
-        uint16 srcChainId;
+        uint64 srcChainId;
         uint24[] nonceLaunch;
         bytes32 srcTxHash;
         bytes32 destTxHash;

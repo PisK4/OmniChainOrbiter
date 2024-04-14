@@ -25,7 +25,7 @@ abstract contract MessageEmitter is IMessageEmitter {
 
     function maxGasLimit() external view virtual override returns (uint24) {}
 
-    function deployChainId() external view virtual override returns (uint16) {}
+    function deployChainId() external view virtual override returns (uint64) {}
 
     function defaultBridgeMode()
         external

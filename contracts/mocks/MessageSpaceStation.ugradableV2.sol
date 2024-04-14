@@ -22,7 +22,6 @@ contract MessageSpaceStationUgv2 is
     string public constant override Version = "v5.3.a-beta";
     uint64 public constant override minArrivalTime = 3 minutes;
     uint64 public constant override maxArrivalTime = 30 days;
-    uint16 public constant deployChainId = L2SupportLib.VIZING;
 
     // constructor() {
     //     _disableInitializers();
@@ -66,10 +65,6 @@ contract MessageSpaceStationUgv2 is
         ) {
             revert Errors.ArrivalTimeNotMakeSense();
         }
-    }
-
-    function ChainId() public pure override returns (uint16) {
-        return deployChainId;
     }
 
     function Manager() public view override returns (address) {

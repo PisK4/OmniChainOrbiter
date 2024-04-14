@@ -55,7 +55,7 @@ interface IMessageChannel is IMessageStruct {
     /// @param chainId the chain id of the sender
     /// @param sender the address of the sender
     function GetNonceLaunch(
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) external view returns (uint32);
 
@@ -63,7 +63,7 @@ interface IMessageChannel is IMessageStruct {
     /// @param chainId the chain id of the sender
     /// @param sender the address of the sender
     function GetNonceLanding(
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) external view returns (uint32);
 
@@ -73,7 +73,7 @@ interface IMessageChannel is IMessageStruct {
 
     /// @dev get the chainId of current Station
     /// @return chainId, defined in the L2SupportLib.sol
-    function ChainId() external view returns (uint16);
+    function ChainId() external view returns (uint64);
 
     function minArrivalTime() external view returns (uint64);
 

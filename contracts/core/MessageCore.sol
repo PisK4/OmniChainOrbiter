@@ -21,7 +21,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
-    uint16 constant UNIVERSE_CHAIN_ID = L2SupportLib.UNIVERSE_CHAIN_ID;
+    uint64 constant UNIVERSE_CHAIN_ID = type(uint64).max;
 
     /// @dev engine status 0x01 is stop, 0x02 is start
     uint8 internal _isPaused;
@@ -280,14 +280,14 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     }
 
     function GetNonceLaunch(
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) external view override returns (uint32) {
         return nonceLaunch.fetchNonce(chainId, sender);
     }
 
     function GetNonceLanding(
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) external view override returns (uint32) {
         return nonceLanding.fetchNonce(chainId, sender);
@@ -345,7 +345,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
 
     function _noncehandling(
         launchMultiMsgParams calldata params,
-        uint16 chainId,
+        uint64 chainId,
         uint256 loopMax
     ) private returns (uint32) {
         return nonceLaunch.updates(chainId, params.sender, uint32(loopMax));
@@ -383,8 +383,8 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         _isLanding = state;
     }
 
-    function ChainId() public pure virtual override returns (uint16) {
-        // revert Errors.NotImplement();
+    function ChainId() public view override returns (uint64) {
+        return uint64(block.chainid);
     }
 
     function Manager() public view virtual override returns (address) {

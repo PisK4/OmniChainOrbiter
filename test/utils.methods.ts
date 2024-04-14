@@ -104,7 +104,7 @@ export async function relayerMessage(
   }
 ) {
   const landInstance = OrbiterStation.connect(relayer).getFunction(
-    "Landing(bytes32,uint64,uint64,(uint16,uint24,address,uint256,bytes32,bytes)[])"
+    "Landing(bytes32,uint64,uint64,(uint64,uint24,address,uint256,bytes32,bytes)[])"
   );
 
   const tx = await landInstance(

@@ -53,7 +53,7 @@ async function main() {
   let OmniTokenChainA = await deployOmniToken(deployer, {
     name: "Omni Orbiter TokenA",
     symbol: "ORBT-A",
-    initialSupply: ethers.utils.parseEther("1000"),
+    initialSupply: ethers.parseEther("1000"),
     LaunchPad: vizingMessageStationAddress,
     LandingPad: vizingMessageStationAddress,
     defaultRelayer: await deployer.getAddress(),

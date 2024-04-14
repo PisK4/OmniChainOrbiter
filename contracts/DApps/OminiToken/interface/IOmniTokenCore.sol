@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 interface IOmniTokenCore {
     struct activateRawMsg {
-        uint16[] destChainld;
+        uint64[] destChainld;
         uint64 earlistArrivalTimestamp;
         uint64 latestArrivalTimestamp;
         address sender;
@@ -18,13 +18,13 @@ interface IOmniTokenCore {
     function mint(address toAddress, uint256 amount) external;
 
     function bridgeTransfer(
-        uint16 destChainId,
+        uint64 destChainId,
         address receiver,
         uint256 amount
     ) external payable;
 
     function fetchOmniTokenTransferFee(
-        uint16[] calldata destChainId,
+        uint64[] calldata destChainId,
         address[] calldata receiver,
         uint256[] calldata amount
     ) external view returns (uint256);

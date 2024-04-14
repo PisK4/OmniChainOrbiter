@@ -18,7 +18,7 @@ library MessageMonitorLib {
 
     function update(
         mapping(bytes32 => uint32) storage self,
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) internal returns (uint32 nonce) {
         return self[abi.encode(chainId, sender).hash()]++;
@@ -33,7 +33,7 @@ library MessageMonitorLib {
 
     function updates(
         mapping(bytes32 => uint32) storage self,
-        uint16 chainId,
+        uint64 chainId,
         address sender,
         uint32 updateTimes
     ) internal returns (uint32 nonce) {
@@ -50,7 +50,7 @@ library MessageMonitorLib {
 
     function compare(
         mapping(bytes32 => uint32) storage self,
-        uint16 chainId,
+        uint64 chainId,
         address sender,
         uint32 nonceLaunch
     ) internal view returns (bool) {
@@ -59,8 +59,8 @@ library MessageMonitorLib {
 
     function fetchMessageId(
         mapping(bytes32 => uint32) storage self,
-        uint16 srcChainId,
-        uint16 destChainId,
+        uint64 srcChainId,
+        uint64 destChainId,
         address sender,
         address launchPad
     ) internal view returns (bytes32 messageId) {
@@ -72,7 +72,7 @@ library MessageMonitorLib {
 
     function fetchNonce(
         mapping(bytes32 => uint32) storage self,
-        uint16 chainId,
+        uint64 chainId,
         address sender
     ) internal view returns (uint32) {
         return self[abi.encode(chainId, sender).hash()];

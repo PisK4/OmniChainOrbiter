@@ -14,7 +14,7 @@ contract VizingNFTStation is MessageEmitter, MessageReceiver, Ownable {
     uint24 public immutable override maxGasLimit;
     bytes1 public immutable override defaultBridgeMode;
     address public immutable override selectedRelayer;
-    uint16 public immutable override deployChainId;
+    uint64 public immutable override deployChainId;
 
     enum NFTStatus {
         warp,
