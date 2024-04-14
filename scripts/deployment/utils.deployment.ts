@@ -219,3 +219,22 @@ export function saveDeployedContracts(deployedContracts: any) {
     JSON.stringify(deployedContracts, null, 2)
   );
 }
+
+export async function deployerConfiguatrion() {
+  let currentProvider = ethers.provider;
+  let deployer;
+  if (process.env.DEPLOYER_PRIVATE_KEY) {
+    deployer = new ethers.Wallet(
+      process.env.DEPLOYER_PRIVATE_KEY,
+      currentProvider
+    );
+    console.log(
+      "Using DEPLOYER_PRIVATE_KEY deployer with address: ",
+      deployer.address
+    );
+  } else {
+    [deployer] = await ethers.getSigners();
+    console.log("Using hardhat deployer with address: ", deployer.address);
+  }
+  return deployer;
+}

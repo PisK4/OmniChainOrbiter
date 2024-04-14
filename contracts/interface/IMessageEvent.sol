@@ -6,19 +6,19 @@ import {IMessageStruct} from "./IMessageStruct.sol";
 interface IMessageEvent is IMessageStruct {
     /// @notice Event emitted when a  message which attempts to cross-chain is submitted to LaunchPad contract
     event SuccessfulLaunchMessages(
-        uint24[] indexed nonce,
+        uint32[] indexed nonce,
         launchMultiMsgParams params
     );
 
     /// @notice Event emitted when a  message which attempts to cross-chain is submitted to LaunchPad contract
     event SuccessfulLaunchMessages2(
-        uint24 indexed nonce,
+        uint32 indexed nonce,
         launchMultiMsgParams params
     );
 
     /// @notice Event emitted when a  message which attempts to cross-chain is submitted to LaunchPad contract
     event SuccessfulLaunchMessage(
-        uint64 indexed nonce,
+        uint32 indexed nonce,
         launchSingleMsgParams params
     );
 

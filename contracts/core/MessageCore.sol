@@ -14,10 +14,10 @@ import {Errors} from "../library/Errors.sol";
 /// Launch is the function that user or DApps send cross-chain message to orther chain
 /// Landing is the function that trusted relayer send cross-chain message to the Station
 abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
-    using MessageMonitorLib for mapping(bytes32 => uint24);
+    using MessageMonitorLib for mapping(bytes32 => uint32);
     using MessageMonitorLib for uint256;
     using MessageMonitorLib for bytes;
-    using MessageMonitorLib for uint24;
+    using MessageMonitorLib for uint32;
     using MessageTypeLib for bytes;
     using Utils for bytes;
 
@@ -143,6 +143,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
             EstimateFee(params)
         )
     {
+        nonce++;
         emit SuccessfulLaunchMessage(
             nonceLaunch.update(params.destChainld, params.sender),
             params
@@ -281,14 +282,14 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     function GetNonceLaunch(
         uint16 chainId,
         address sender
-    ) external view override returns (uint24) {
+    ) external view override returns (uint32) {
         return nonceLaunch.fetchNonce(chainId, sender);
     }
 
     function GetNonceLanding(
         uint16 chainId,
         address sender
-    ) external view override returns (uint24) {
+    ) external view override returns (uint32) {
         return nonceLanding.fetchNonce(chainId, sender);
     }
 
@@ -296,7 +297,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @dev Explain to a developer any extra details
     function _LaunchOne2One(
         launchMultiMsgParams calldata params
-    ) private returns (uint24[] memory) {
+    ) private returns (uint32[] memory) {
         return _noncehandling(params, params.message.length);
     }
 
@@ -304,7 +305,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @dev Explain to a developer any extra details
     function _LaunchOne2Many(
         launchMultiMsgParams calldata params
-    ) private returns (uint24[] memory) {
+    ) private returns (uint32[] memory) {
         return _noncehandling(params, params.destChainld.length);
     }
 
@@ -312,7 +313,7 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @dev Explain to a developer any extra details
     function _LaunchMany2One(
         launchMultiMsgParams calldata params
-    ) private returns (uint24) {
+    ) private returns (uint32) {
         return
             _noncehandling(
                 params,
@@ -324,15 +325,15 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
     /// @notice the message will be sent to all chains
     function _Lanch2Universe(
         launchMultiMsgParams calldata params
-    ) private returns (uint24) {
+    ) private returns (uint32) {
         return _noncehandling(params, UNIVERSE_CHAIN_ID, params.message.length);
     }
 
     function _noncehandling(
         launchMultiMsgParams calldata params,
         uint256 loopMax
-    ) private returns (uint24[] memory) {
-        uint24[] memory nonces = new uint24[](loopMax);
+    ) private returns (uint32[] memory) {
+        uint32[] memory nonces = new uint32[](loopMax);
         for (uint256 i = 0; i < loopMax; i++) {
             nonces[i] = nonceLaunch.update(
                 params.destChainld[i],
@@ -346,8 +347,8 @@ abstract contract MessageCore is IMessageSpaceStation, MessageMonitor {
         launchMultiMsgParams calldata params,
         uint16 chainId,
         uint256 loopMax
-    ) private returns (uint24) {
-        return nonceLaunch.updates(chainId, params.sender, uint24(loopMax));
+    ) private returns (uint32) {
+        return nonceLaunch.updates(chainId, params.sender, uint32(loopMax));
     }
 
     function _checkArrivalTime(

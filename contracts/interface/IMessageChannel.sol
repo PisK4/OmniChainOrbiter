@@ -57,7 +57,7 @@ interface IMessageChannel is IMessageStruct {
     function GetNonceLaunch(
         uint16 chainId,
         address sender
-    ) external view returns (uint24);
+    ) external view returns (uint32);
 
     /// @dev get the message landing nonce of the sender on the specific chain
     /// @param chainId the chain id of the sender
@@ -65,7 +65,7 @@ interface IMessageChannel is IMessageStruct {
     function GetNonceLanding(
         uint16 chainId,
         address sender
-    ) external view returns (uint24);
+    ) external view returns (uint32);
 
     /// @dev get the version of the Station
     /// @return the version of the Station, like "v1.0.0"

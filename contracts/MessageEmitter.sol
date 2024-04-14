@@ -84,7 +84,7 @@ abstract contract MessageEmitter is IMessageEmitter {
         );
     }
 
-    function _fetchNonce() internal view virtual returns (uint24 nonce) {
+    function _fetchNonce() internal view virtual returns (uint32 nonce) {
         nonce = LaunchPad.GetNonceLaunch(LaunchPad.ChainId(), msg.sender);
     }
 }

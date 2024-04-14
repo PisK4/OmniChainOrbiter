@@ -83,7 +83,11 @@ export async function bridgeTransfer(
     "to:",
     args.receiver,
     "amount:",
-    args.amount
+    args.amount,
+    "station address:",
+    await LaunchPad.getAddress(),
+    "current block:",
+    await ethers.provider.getBlockNumber()
   );
 
   return { nonce, params };

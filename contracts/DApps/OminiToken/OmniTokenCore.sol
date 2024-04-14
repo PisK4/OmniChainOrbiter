@@ -250,7 +250,7 @@ abstract contract OmniTokenCore is
 
     function _receiveMessage(
         uint64 srcChainId,
-        uint24 nonce,
+        uint32 nonce,
         address sender,
         bytes calldata message
     ) internal virtual override {

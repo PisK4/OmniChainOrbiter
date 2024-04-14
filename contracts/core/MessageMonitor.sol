@@ -17,48 +17,48 @@ library MessageMonitorLib {
     uint16 constant returnDataSize = 32;
 
     function update(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         uint16 chainId,
         address sender
-    ) internal returns (uint24 nonce) {
+    ) internal returns (uint32 nonce) {
         return self[abi.encode(chainId, sender).hash()]++;
     }
 
     function update(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         bytes32 nonceKey
     ) internal {
         self[nonceKey]++;
     }
 
     function updates(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         uint16 chainId,
         address sender,
-        uint24 updateTimes
-    ) internal returns (uint24 nonce) {
+        uint32 updateTimes
+    ) internal returns (uint32 nonce) {
         return self[abi.encode(chainId, sender).hash()] += updateTimes;
     }
 
     function updates(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         bytes32 nonceKey,
-        uint24 updateTimes
+        uint32 updateTimes
     ) internal {
         self[nonceKey] += updateTimes;
     }
 
     function compare(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         uint16 chainId,
         address sender,
-        uint24 nonceLaunch
+        uint32 nonceLaunch
     ) internal view returns (bool) {
         return self[abi.encode(chainId, sender).hash()] == nonceLaunch;
     }
 
     function fetchMessageId(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         uint16 srcChainId,
         uint16 destChainId,
         address sender,
@@ -71,10 +71,10 @@ library MessageMonitorLib {
     }
 
     function fetchNonce(
-        mapping(bytes32 => uint24) storage self,
+        mapping(bytes32 => uint32) storage self,
         uint16 chainId,
         address sender
-    ) internal view returns (uint24) {
+    ) internal view returns (uint32) {
         return self[abi.encode(chainId, sender).hash()];
     }
 
@@ -84,7 +84,7 @@ library MessageMonitorLib {
     ) internal returns (bool success, bytes memory returnData) {
         (
             address contractAddr,
-            uint24 gasLimit,
+            uint32 gasLimit,
             bytes memory signature
         ) = sliceMessage(message);
 
@@ -147,8 +147,9 @@ library MessageMonitorLib {
 
 abstract contract MessageMonitor {
     using MessageMonitorLib for bytes;
-    mapping(bytes32 => uint24) public nonceLaunch;
-    mapping(bytes32 => uint24) public nonceLanding;
+    mapping(bytes32 => uint32) public nonceLaunch;
+    mapping(bytes32 => uint32) public nonceLanding;
+    uint32 public nonce;
 
     // function _activateSDKSig(bytes calldata message) internal virtual {
     //     (

@@ -21,10 +21,10 @@ abstract contract MessageReceiver is IMessageReceiver {
     /// @notice the standard function to receive the cross-chain message
     function receiveMessage(
         uint64 srcChainId,
-        uint24 nonce,
+        uint32 nonce,
         address sender,
         bytes calldata message
-    ) external virtual onlyLandingPad {
+    ) external payable virtual onlyLandingPad {
         _receiveMessage(srcChainId, nonce, sender, message);
     }
 
@@ -35,7 +35,7 @@ abstract contract MessageReceiver is IMessageReceiver {
     /// @param message the message from the source chain
     function _receiveMessage(
         uint64 srcChainId,
-        uint24 nonce,
+        uint32 nonce,
         address sender,
         bytes calldata message
     ) internal virtual {
