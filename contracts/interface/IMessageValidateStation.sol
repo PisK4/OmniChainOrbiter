@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IMessageStruct} from "./IMessageStruct.sol";
 
-library RelayerStorageLib {
+library MessageValidateStationStorageLib {
     function toStorage(
         mapping(bytes32 => IMessageStruct.SignedMessageStruct) storage self,
         IMessageStruct.SignedMessageStruct calldata signedMessage
@@ -19,7 +19,7 @@ library RelayerStorageLib {
     }
 }
 
-interface IRelayer {
+interface IMessageValidateStation {
     event LaunchMessageVerified(
         IMessageStruct.SignedMessageStruct[] indexed signedMessage
     );

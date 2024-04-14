@@ -5,14 +5,14 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import {IRelayer, RelayerStorageLib} from "./interface/IRelayer.sol";
+import {IMessageValidateStation, MessageValidateStationStorageLib} from "./interface/IMessageValidateStation.sol";
 import {IMessageStruct} from "./interface/IMessageStruct.sol";
 import {Utils} from "./library/Utils.sol";
 import {Errors} from "./library/Errors.sol";
 
-contract Relayer is IRelayer, Ownable {
+contract MessageValidateStation is IMessageValidateStation, Ownable {
     using MessageHashUtils for bytes32;
-    using RelayerStorageLib for mapping(bytes32 => IMessageStruct.SignedMessageStruct);
+    using MessageValidateStationStorageLib for mapping(bytes32 => IMessageStruct.SignedMessageStruct);
     using Utils for bytes;
     using ECDSA for bytes32;
 
